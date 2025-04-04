@@ -1,0 +1,105 @@
+use anyhow::Result;
+use serde::Deserialize;
+use smart_default::SmartDefault;
+use std::{error::Error, fs, path::PathBuf, time};
+
+#[derive(Debug, SmartDefault, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct BacklightSettings {
+    #[default(1000)]
+    pub refresh_interval: u32,
+
+    #[default(6)]
+    pub signal: u32,
+
+    #[default(Box::from(PathBuf::from("/sys/class/backlight/acpi_video0")))]
+    pub path: Box<PathBuf>,
+
+    #[default(String::from(" "))]
+    pub left_pad: String,
+
+    #[default(String::from(" "))]
+    pub right_pad: String,
+}
+
+#[derive(Debug, SmartDefault)]
+pub struct Backlight {
+    pub perc: Option<i32>,
+    pub last_updated: Option<time::Instant>,
+    pub settings: BacklightSettings,
+}
+
+/// methods for fetching, parsing, and calculating
+impl Backlight {
+    // pure function, simply calculate percent from values
+    fn calculate_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
+        ((brightness * 100.0) / max_brightness) as i32
+    }
+
+    // read values from fs, return values
+    fn read_values_from_fs(&self) -> Result<(f32, f32), Box<dyn Error>> {
+        let mut br_path = self.settings.path.clone();
+        br_path.push("brightness");
+        let br_read: String = fs::read_to_string(*br_path)?;
+        let br: f32 = br_read.trim().parse()?;
+
+        let mut max_br_path = self.settings.path.clone();
+        max_br_path.push("max_brightness");
+        let max_br_read: String = fs::read_to_string(*max_br_path)?;
+        let max_br: f32 = max_br_read.trim().parse()?;
+
+        Ok((br, max_br))
+    }
+
+    // update
+    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
+        let (brightness, max_brightness) = self.read_values_from_fs()?;
+        self.perc = Some(Self::calculate_percent_from_values(
+            brightness,
+            max_brightness,
+        ));
+        self.last_updated = Some(time::Instant::now());
+        Ok(())
+    }
+
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    // pub fn new_with_path(path: PathBuf) -> Self {
+    //     Self {
+    //         perc: None,
+    //         last_updated: None,
+    //         ..Default::default()
+    //     }
+    // }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// test whether a given br and max_br value results in the exected perc
+    #[test]
+    fn percent_calc() {
+        assert_eq!(Backlight::calculate_percent_from_values(50.0, 100.0), 50);
+        assert_eq!(Backlight::calculate_percent_from_values(75.0, 100.0), 75);
+        assert_eq!(Backlight::calculate_percent_from_values(100.0, 200.0), 50);
+        assert_eq!(Backlight::calculate_percent_from_values(0.0, 100.0), 0);
+        assert_eq!(Backlight::calculate_percent_from_values(100.0, 100.0), 100);
+    }
+
+    /// simply print the current backlight percent. use `-- --nocapture`.
+    #[test]
+    fn current_percent() {
+        let mut bl: Backlight = Default::default();
+        bl.update().expect("could not update Backlight");
+        println!(
+            "> Current Backlight:
+\t{:?}
+\t{:?}
+\t{:?}",
+            bl.settings.path, bl.perc, bl.last_updated
+        );
+    }
+}
