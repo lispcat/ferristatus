@@ -5,39 +5,6 @@ use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-// implement the Debug trait using newtype wrappers for
-// some custom data types in acpi_client
-
-// pub struct DebugChargingState(ChargingState);
-
-// impl fmt::Debug for DebugChargingState {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         match self.0 {
-//             ChargingState::Charging => write!(f, "Charging"),
-//             ChargingState::Discharging => write!(f, "Discharging"),
-//             ChargingState::Full => write!(f, "Full"),
-//         }
-//     }
-// }
-
-// pub struct DebugBatteryInfo(BatteryInfo);
-
-// impl fmt::Debug for DebugBatteryInfo {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         f.debug_struct("BatteryInfo")
-//             .field("name", &self.0.name)
-//             .field("remaining_capacity", &self.0.remaining_capacity)
-//             .field("present_rate", &self.0.present_rate)
-//             .field("voltage", &self.0.voltage)
-//             .field("design_capacity", &self.0.design_capacity)
-//             .field("last_capacity", &self.0.last_capacity)
-//             .field("time_remaining", &self.0.time_remaining) // Duration implements Debug
-//             .field("percentage", &self.0.percentage)
-//             .field("state", &DebugChargingState(self.0.state)) // Wrap ChargingState for Debug
-//             .finish()
-//     }
-// }
-
 // Battery struct
 
 #[derive(Debug, SmartDefault, Deserialize)]

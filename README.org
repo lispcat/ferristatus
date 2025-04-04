@@ -1,0 +1,5 @@
+#+title: Ferristatus
+
+* Overview
+
+This is a minimal status bar printer inspired by dwmblocks and slstatus, written in Rust.

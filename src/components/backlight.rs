@@ -65,14 +65,6 @@ impl Backlight {
     pub fn new() -> Self {
         Default::default()
     }
-
-    // pub fn new_with_path(path: PathBuf) -> Self {
-    //     Self {
-    //         perc: None,
-    //         last_updated: None,
-    //         ..Default::default()
-    //     }
-    // }
 }
 
 #[cfg(test)]
