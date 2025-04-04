@@ -6,10 +6,13 @@
 // |_|  \___|_|  |_|  |_|___/\__\__,_|\__|\__,_|___/
 //
 
+use args::Args;
 use clap::Parser;
 
+pub mod args;
 pub mod components;
 pub mod config;
+pub mod utils;
 
 // ideas:
 // it's separated into blocks/modules
@@ -30,11 +33,11 @@ pub mod config;
 // Wifi,
 // Custom,
 
-#[derive(Debug, Parser)]
-#[command(author, version, about)]
-struct Args {
-    config: Option<String>,
-}
+// #[derive(Debug, Parser)]
+// #[command(author, version, about)]
+// struct Args {
+//     config: Option<String>,
+// }
 
 trait StatusBlock {
     // fn get_value(&self) -> Result<String, Box<dyn Error>>;

@@ -2,7 +2,7 @@ use alsa::mixer::{Mixer, Selem, SelemId};
 use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::{error::Error, fmt::Display, time};
+use std::{error::Error, time};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]

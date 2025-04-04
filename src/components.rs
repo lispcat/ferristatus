@@ -1,4 +1,4 @@
-use std::fmt::{self, Display};
+use std::fmt;
 
 use serde::Deserialize;
 
@@ -6,7 +6,6 @@ pub mod alsa;
 pub mod backlight;
 pub mod battery;
 pub mod time;
-pub mod utils;
 
 pub trait Component: fmt::Debug {}
 

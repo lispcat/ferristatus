@@ -1,6 +1,6 @@
-use std::{error::Error, fmt, path::PathBuf, time::Instant};
+use std::{error::Error, path::PathBuf, time::Instant};
 
-use acpi_client::{self, BatteryInfo, ChargingState};
+use acpi_client::{self, BatteryInfo};
 use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;

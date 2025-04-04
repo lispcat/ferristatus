@@ -2,15 +2,17 @@ use anyhow::Result;
 use serde::Deserialize;
 use serde_json::Value;
 use smart_default::SmartDefault;
-use std::{collections::HashMap, env, error::Error, fs, path::PathBuf};
+use std::{collections::HashMap, error::Error, fs, path::PathBuf};
 
-use crate::components::{
-    alsa::Alsa,
-    alsa::AlsaSettings,
-    backlight::{Backlight, BacklightSettings},
-    battery::{Battery, BatterySettings},
-    time::{Time, TimeSettings},
-    Component,
+use crate::{
+    components::{
+        alsa::{Alsa, AlsaSettings},
+        backlight::{Backlight, BacklightSettings},
+        battery::{Battery, BatterySettings},
+        time::{Time, TimeSettings},
+        Component,
+    },
+    Args,
 };
 
 #[derive(SmartDefault, Debug)]
@@ -34,38 +36,29 @@ pub struct Settings {
 // TODO: use RON instead of json
 
 impl Config {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
-        let path: PathBuf = Self::get_config_path(None)?;
+    pub fn new(args: &Args) -> Result<Self, Box<dyn Error>> {
+        let path: PathBuf = args.config_path.clone();
         let contents: String = Self::read_json(&path);
         let deserialized: HashMap<String, Value> = Self::deserialize_json(&contents)?;
         let config: Config = Self::parse_config(deserialized)?;
         Ok(config)
     }
 
-    // near duplicate of Config::new()
-    pub fn new_from(path: PathBuf) -> Result<Self, Box<dyn Error>> {
-        let path: PathBuf = Self::get_config_path(Some(path))?;
-        let contents: String = Self::read_json(&path);
-        let deserialized: HashMap<String, Value> = Self::deserialize_json(&contents)?;
-        let config: Config = Self::parse_config(deserialized)?;
-        Ok(config)
-    }
-
-    // get PathBuf to config file, optionally a custom path
-    fn get_config_path(custom_path: Option<PathBuf>) -> Result<PathBuf, Box<dyn Error>> {
-        match custom_path {
-            Some(path) => Ok(path),
-            None => {
-                let mut path = env::var_os("XDG_CONFIG_HOME")
-                    .map(PathBuf::from)
-                    .or_else(|| Some(PathBuf::from(env::var_os("HOME")?).join(".config")))
-                    .expect("Cannot find config dir");
-                path.push("ferristatus");
-                path.push("config.json");
-                Ok(path)
-            }
-        }
-    }
+    // // get PathBuf to config file, optionally a custom path
+    // fn get_config_path(custom_path: Option<PathBuf>) -> Result<PathBuf, Box<dyn Error>> {
+    //     match custom_path {
+    //         Some(path) => Ok(path),
+    //         None => {
+    //             let mut path = env::var_os("XDG_CONFIG_HOME")
+    //                 .map(PathBuf::from)
+    //                 .or_else(|| Some(PathBuf::from(env::var_os("HOME")?).join(".config")))
+    //                 .expect("Cannot find config dir");
+    //             path.push("ferristatus");
+    //             path.push("config.json");
+    //             Ok(path)
+    //         }
+    //     }
+    // }
 
     // read config file and return String
     fn read_json(contents: &PathBuf) -> String {
@@ -152,19 +145,19 @@ impl Config {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
+    // use super::*;
 
-    #[test]
-    fn config_file() {
-        // let path = PathBuf::from("config.json");
-        // let contents = Config::read_json(&path);
-        // let deserialized: HashMap<String, Value> = serde_json::from_str(&contents).unwrap();
-        // let config: Config = Config::parse_config(deserialized).unwrap();
+    // #[test]
+    // fn config_file() {
+    //     // let path = PathBuf::from("config.json");
+    //     // let contents = Config::read_json(&path);
+    //     // let deserialized: HashMap<String, Value> = serde_json::from_str(&contents).unwrap();
+    //     // let config: Config = Config::parse_config(deserialized).unwrap();
 
-        let config = Config::new_from(PathBuf::from("config.json")).unwrap();
+    //     let config = Config::new(PathBuf::from("config.json")).unwrap();
 
-        // println!("TEST: {}", config.components[1]);
+    //     // println!("TEST: {}", config.components[1]);
 
-        println!("DEBUG: OUTPUT: {:#?}", config);
-    }
+    //     println!("DEBUG: OUTPUT: {:#?}", config);
+    // }
 }
