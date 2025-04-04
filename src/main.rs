@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+// #![allow(dead_code)]
 //   __                _     _        _
 //  / _| ___ _ __ _ __(_)___| |_ __ _| |_ _   _ ___
 // | |_ / _ \ '__| '__| / __| __/ _` | __| | | / __|
@@ -39,9 +39,6 @@ pub mod utils;
 //     config: Option<String>,
 // }
 
-trait StatusBlock {
-    // fn get_value(&self) -> Result<String, Box<dyn Error>>;
-}
 fn main() -> anyhow::Result<()> {
     // parse args
     let args = Args::parse();
