@@ -73,6 +73,7 @@ impl Config {
                             })
                         })
                         .collect();
+
                     config.components.append(&mut vec);
                 }
                 "settings" => {

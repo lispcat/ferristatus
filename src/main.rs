@@ -8,6 +8,7 @@
 
 use args::Args;
 use clap::Parser;
+use config::Config;
 
 pub mod args;
 pub mod components;
@@ -33,18 +34,32 @@ pub mod utils;
 // Wifi,
 // Custom,
 
-// #[derive(Debug, Parser)]
-// #[command(author, version, about)]
-// struct Args {
-//     config: Option<String>,
-// }
-
 fn main() -> anyhow::Result<()> {
     // parse args
     let args = Args::parse();
     println!("Args: {:#?}", args);
 
+    let config = Config::new(&args);
+    println!("Config: {:#?}", config);
+
     println!("Hello, world!");
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn main() {
+        let args = Args {
+            config_path: "tests/config.json".into(),
+            ..Args::default()
+        };
+        println!("Args: {:#?}", args);
+
+        let config = Config::new(&args).expect("failed to get config");
+        println!("Config: {:#?}", config);
+    }
 }
