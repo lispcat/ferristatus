@@ -44,22 +44,6 @@ impl Config {
         Ok(config)
     }
 
-    // // get PathBuf to config file, optionally a custom path
-    // fn get_config_path(custom_path: Option<PathBuf>) -> Result<PathBuf, Box<dyn Error>> {
-    //     match custom_path {
-    //         Some(path) => Ok(path),
-    //         None => {
-    //             let mut path = env::var_os("XDG_CONFIG_HOME")
-    //                 .map(PathBuf::from)
-    //                 .or_else(|| Some(PathBuf::from(env::var_os("HOME")?).join(".config")))
-    //                 .expect("Cannot find config dir");
-    //             path.push("ferristatus");
-    //             path.push("config.json");
-    //             Ok(path)
-    //         }
-    //     }
-    // }
-
     // read config file and return String
     fn read_json(contents: &PathBuf) -> String {
         fs::read_to_string(contents).expect("failed to read config file")
@@ -81,9 +65,9 @@ impl Config {
                     let mut vec: Vec<Box<dyn Component>> = list
                         .iter()
                         .map(|(c, v)| {
-                            Config::parse_component(c, v).expect(
-                                format!("could not parse component {}: {:?}", c, v).as_str(),
-                            )
+                            Config::parse_component(c, v).unwrap_or_else(|_| {
+                                panic!("could not parse component {}: {:?}", c, v)
+                            })
                         })
                         .collect();
                     config.components.append(&mut vec);
@@ -103,7 +87,7 @@ impl Config {
         match key.to_lowercase().as_str() {
             "alsa" => {
                 let settings: AlsaSettings = serde_json::from_value(value.clone())
-                    .expect(format!("failed to parse {} config", key).as_str());
+                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
                 let component = Alsa {
                     settings,
                     ..Default::default()
@@ -112,7 +96,7 @@ impl Config {
             }
             "backlight" => {
                 let settings: BacklightSettings = serde_json::from_value(value.clone())
-                    .expect(format!("failed to parse {} config", key).as_str());
+                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
                 let component = Backlight {
                     settings,
                     ..Default::default()
@@ -121,7 +105,7 @@ impl Config {
             }
             "battery" => {
                 let settings: BatterySettings = serde_json::from_value(value.clone())
-                    .expect(format!("failed to parse {} config", key).as_str());
+                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
                 let component = Battery {
                     settings,
                     ..Default::default()
@@ -130,7 +114,7 @@ impl Config {
             }
             "time" => {
                 let settings: TimeSettings = serde_json::from_value(value.clone())
-                    .expect(format!("failed to parse {} config", key).as_str());
+                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
                 let component = Time {
                     settings,
                     ..Default::default()

@@ -1,6 +1,5 @@
-use std::fmt;
-
 use serde::Deserialize;
+use std::fmt;
 
 pub mod alsa;
 pub mod backlight;
