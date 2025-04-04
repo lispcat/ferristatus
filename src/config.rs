@@ -59,9 +59,12 @@ impl Config {
         let mut config = Self::default();
 
         for (category, value) in hashmap {
-            match category.to_lowercase().as_str() {
+            let category = category.to_lowercase();
+            match category.as_str() {
                 "components" => {
-                    let list = value.as_object().unwrap();
+                    let list = value
+                        .as_object()
+                        .unwrap_or_else(|| panic!("could not parse category: {}", category));
                     let mut vec: Vec<Box<dyn Component>> = list
                         .iter()
                         .map(|(c, v)| {
@@ -73,7 +76,8 @@ impl Config {
                     config.components.append(&mut vec);
                 }
                 "settings" => {
-                    config.settings = serde_json::from_value(value.clone()).unwrap();
+                    config.settings = serde_json::from_value(value.clone())
+                        .unwrap_or_else(|_| panic!("could not parse category {}", category));
                 }
                 x => return Err(format!("unknown setting category: {}", x).into()),
             }
