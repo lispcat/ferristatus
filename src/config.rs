@@ -75,12 +75,11 @@ impl Config {
 
     // parse HashMap and return generated Config struct
     fn parse_config(hashmap: HashMap<String, Value>) -> Result<Config, Box<dyn Error>> {
-        let mut config = Self::default();
-
-        for (category, body) in hashmap {
-            match category.to_lowercase().as_str() {
-                "components" => {
-                    config.components = body
+        hashmap.iter().try_fold(
+            Self::default(),
+            |acc_config, (category, body)| match category.to_lowercase().as_str() {
+                "components" => Ok(Self {
+                    components: body
                         .as_object()
                         .unwrap_or_else(|| panic!("could not parse category: {}", category))
                         .iter()
@@ -92,17 +91,17 @@ impl Config {
                                 )
                             })
                         })
-                        .collect::<Vec<Box<dyn Component>>>();
-                }
-                "settings" => {
-                    config.settings = serde_json::from_value(body.clone())
-                        .unwrap_or_else(|_| panic!("could not parse category {}", category));
-                }
-                x => return Err(format!("unknown setting category: {}", x).into()),
-            }
-        }
-
-        Ok(config)
+                        .collect::<Vec<Box<dyn Component>>>(),
+                    ..acc_config
+                }),
+                "settings" => Ok(Self {
+                    settings: serde_json::from_value(body.clone())
+                        .unwrap_or_else(|_| panic!("could not parse category {}", category)),
+                    ..acc_config
+                }),
+                x => Err(format!("unknown setting category: {}", x).into()),
+            },
+        )
     }
 
     // parse a component and return a new instance of it
