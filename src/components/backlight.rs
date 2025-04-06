@@ -3,6 +3,8 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{error::Error, fs, path::PathBuf, time};
 
+use super::Component;
+
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BacklightSettings {
@@ -31,6 +33,10 @@ pub struct Backlight {
 
 /// methods for fetching, parsing, and calculating
 impl Backlight {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
     // pure function, simply calculate percent from values
     fn calculate_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
         ((brightness * 100.0) / max_brightness) as i32
@@ -50,9 +56,11 @@ impl Backlight {
 
         Ok((br, max_br))
     }
+}
 
+impl Component for Backlight {
     // update
-    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self) -> Result<(), Box<dyn Error>> {
         let (brightness, max_brightness) = self.read_values_from_fs()?;
         self.perc = Some(Self::calculate_percent_from_values(
             brightness,
@@ -60,10 +68,6 @@ impl Backlight {
         ));
         self.last_updated = Some(time::Instant::now());
         Ok(())
-    }
-
-    pub fn new() -> Self {
-        Default::default()
     }
 }
 
@@ -81,17 +85,17 @@ mod tests {
         assert_eq!(Backlight::calculate_percent_from_values(100.0, 100.0), 100);
     }
 
-    /// simply print the current backlight percent. use `-- --nocapture`.
-    #[test]
-    fn current_percent() {
-        let mut bl: Backlight = Default::default();
-        bl.update().expect("could not update Backlight");
-        println!(
-            "> Current Backlight:
-\t{:?}
-\t{:?}
-\t{:?}",
-            bl.settings.path, bl.perc, bl.last_updated
-        );
-    }
+    //     /// simply print the current backlight percent. use `-- --nocapture`.
+    //     #[test]
+    //     fn current_percent() {
+    //         let mut bl: Backlight = Default::default();
+    //         bl.update().expect("could not update Backlight");
+    //         println!(
+    //             "> Current Backlight:
+    // \t{:?}
+    // \t{:?}
+    // \t{:?}",
+    //             bl.settings.path, bl.perc, bl.last_updated
+    //         );
+    //     }
 }

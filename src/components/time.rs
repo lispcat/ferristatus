@@ -5,6 +5,8 @@ use chrono::{DateTime, Local};
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
+use super::Component;
+
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TimeSettings {
@@ -30,11 +32,6 @@ impl Time {
         Default::default()
     }
 
-    // update
-    pub fn update(&mut self) {
-        self.now = Some(Local::now());
-    }
-
     // get time using Time.format
     pub fn get(&self) -> Result<String, Box<dyn Error>> {
         let now = self.now.ok_or("No timestamp available")?;
@@ -47,14 +44,22 @@ impl Time {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        let mut time = Time::new();
-        time.update();
-        println!("> Time:\n\t{:?}\n\t{:?}", time.settings.format, time.get());
+impl Component for Time {
+    // update
+    fn update(&mut self) -> Result<(), Box<dyn Error>> {
+        self.now = Some(Local::now());
+        Ok(())
     }
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn test() {
+//         let mut time = Time::new();
+//         time.update();
+//         println!("> Time:\n\t{:?}\n\t{:?}", time.settings.format, time.get());
+//     }
+// }

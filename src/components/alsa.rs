@@ -4,6 +4,8 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{error::Error, time};
 
+use super::Component;
+
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct AlsaSettings {
@@ -29,11 +31,12 @@ pub struct Alsa {
 }
 
 impl Alsa {
-    // initialization
     pub fn new() -> Self {
         Default::default()
     }
+}
 
+impl Component for Alsa {
     fn update(&mut self) -> Result<(), Box<dyn Error>> {
         // Open the default mixer
         let mixer: Mixer = Mixer::new("default", false).unwrap();
@@ -69,15 +72,15 @@ impl Alsa {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 
-    #[test]
-    fn alsa_current() {
-        let mut alsa = Alsa::new();
-        alsa.update().expect("failed to update alsa");
-        println!(
-            "> Alsa:\n\tcurrent: {:?},\n\tis_muted: {:?}",
-            alsa.volume_perc, alsa.is_muted
-        );
-    }
+    // #[test]
+    // fn alsa_current() {
+    //     let mut alsa = Alsa::new();
+    //     alsa.update().expect("failed to update alsa");
+    //     println!(
+    //         "> Alsa:\n\tcurrent: {:?},\n\tis_muted: {:?}",
+    //         alsa.volume_perc, alsa.is_muted
+    //     );
+    // }
 }

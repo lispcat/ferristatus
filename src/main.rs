@@ -53,10 +53,14 @@ mod tests {
 
     #[test]
     fn main() {
-        let config = Config::new(&Args {
+        let mut config = Config::new(&Args {
             config_path: "tests/config.json".into(),
             ..Args::default()
-        });
+        })
+        .expect("failed to get config");
+        for c in config.components.iter_mut() {
+            c.update().unwrap();
+        }
         println!("Config: {:#?}", config);
     }
 }

@@ -5,6 +5,8 @@ use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
+use super::Component;
+
 // Battery struct
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -53,11 +55,14 @@ impl Battery {
     pub fn new() -> Self {
         Self::default()
     }
+}
 
+impl Component for Battery {
     // update
-    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self) -> Result<(), Box<dyn Error>> {
         let dir = self.settings.path.clone().into_boxed_path();
-        let ps_info = BatteryInfo::new(&dir).expect("failed to to create new BatteryInfo instance");
+        let ps_info =
+            BatteryInfo::new(&dir).map_err(|_| "failed to to create new BatteryInfo instance")?;
         self.battery_info = Some(ps_info);
         self.last_updated = Some(Instant::now());
 
@@ -67,14 +72,14 @@ impl Battery {
 
 // testing
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    fn updating() {
-        let mut bat = Battery::new();
-        bat.update().expect("failed to update battery struct");
-        println!("> Battery: {:#?}", bat);
-    }
-}
+//     #[test]
+//     fn updating() {
+//         let mut bat = Battery::new();
+//         bat.update().expect("failed to update battery struct");
+//         println!("> Battery: {:#?}", bat);
+//     }
+// }

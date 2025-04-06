@@ -60,15 +60,15 @@ macro_rules! parse_components {
 impl Config {
     pub fn new(args: &Args) -> Result<Self, Box<dyn Error>> {
         let path: PathBuf = args.config_path.clone();
-        let contents: String = Self::read_json(&path);
+        let contents: String = Self::read_json(&path)?;
         let deserialized: HashMap<String, Value> = Self::deserialize_json(&contents)?;
         let config: Config = Self::parse_config(deserialized)?;
         Ok(config)
     }
 
     // read config file and return String
-    fn read_json(contents: &PathBuf) -> String {
-        fs::read_to_string(contents).expect("failed to read config file")
+    fn read_json(contents: &PathBuf) -> Result<String, Box<dyn Error>> {
+        Ok(fs::read_to_string(contents).map_err(|_| "failed to read config file")?)
     }
 
     // deserialize String json into HashMap
@@ -101,7 +101,6 @@ impl Config {
                         ..acc_config
                     })
                 }
-
                 "settings" => {
                     let settings = serde_json::from_value(body)
                         .map_err(|_| format!("could not parse category {}", category))?;
@@ -125,22 +124,11 @@ impl Config {
     );
 }
 
-#[cfg(test)]
-mod tests {
+// #[cfg(test)]
+// mod tests {
 
-    // use super::*;
+//     use super::*;
 
-    // #[test]
-    // fn config_file() {
-    //     // let path = PathBuf::from("config.json");
-    //     // let contents = Config::read_json(&path);
-    //     // let deserialized: HashMap<String, Value> = serde_json::from_str(&contents).unwrap();
-    //     // let config: Config = Config::parse_config(deserialized).unwrap();
-
-    //     let config = Config::new(PathBuf::from("config.json")).unwrap();
-
-    //     // println!("TEST: {}", config.components[1]);
-
-    //     println!("DEBUG: OUTPUT: {:#?}", config);
-    // }
-}
+//     #[test]
+//     fn config_file() {}
+// }

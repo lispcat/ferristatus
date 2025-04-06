@@ -1,17 +1,19 @@
 use serde::Deserialize;
-use std::fmt;
+use std::{error::Error, fmt};
 
 pub mod alsa;
 pub mod backlight;
 pub mod battery;
 pub mod time;
 
-pub trait Component: fmt::Debug {}
+pub trait Component: fmt::Debug {
+    fn update(&mut self) -> Result<(), Box<dyn Error>>;
+}
 
-impl Component for alsa::Alsa {}
-impl Component for backlight::Backlight {}
-impl Component for battery::Battery {}
-impl Component for time::Time {}
+// impl Component for alsa::Alsa {}
+// impl Component for backlight::Backlight {}
+// impl Component for battery::Battery {}
+// impl Component for time::Time {}
 
 pub trait ComponentSettings: fmt::Debug + for<'a> Deserialize<'a> {}
 
