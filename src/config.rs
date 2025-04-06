@@ -77,26 +77,29 @@ impl Config {
     fn parse_config(hashmap: HashMap<String, Value>) -> Result<Config, Box<dyn Error>> {
         let mut config = Self::default();
 
-        for (category, value) in hashmap {
-            let category = category.to_lowercase();
-            match category.as_str() {
+        for (category, body) in hashmap {
+            match category.to_lowercase().as_str() {
                 "components" => {
-                    let list = value
-                        .as_object()
-                        .unwrap_or_else(|| panic!("could not parse category: {}", category));
-                    let mut vec: Vec<Box<dyn Component>> = list
-                        .iter()
-                        .map(|(c, v)| {
-                            Config::parse_component(c, v).unwrap_or_else(|_| {
-                                panic!("could not parse component {}: {:?}", c, v)
+                    config.components.append(
+                        &mut body
+                            .as_object()
+                            .unwrap_or_else(|| panic!("could not parse category: {}", category))
+                            .iter()
+                            .map(|(component_name, settings)| {
+                                Config::parse_component(component_name, settings).unwrap_or_else(
+                                    |_| {
+                                        panic!(
+                                            "could not parse component {}: {:?}",
+                                            component_name, settings
+                                        )
+                                    },
+                                )
                             })
-                        })
-                        .collect();
-
-                    config.components.append(&mut vec);
+                            .collect::<Vec<Box<dyn Component>>>(),
+                    );
                 }
                 "settings" => {
-                    config.settings = serde_json::from_value(value.clone())
+                    config.settings = serde_json::from_value(body.clone())
                         .unwrap_or_else(|_| panic!("could not parse category {}", category));
                 }
                 x => return Err(format!("unknown setting category: {}", x).into()),
