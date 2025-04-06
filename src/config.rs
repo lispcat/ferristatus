@@ -95,14 +95,17 @@ impl Config {
                             })
                         })
                         .collect::<Result<Vec<Box<dyn Component>>, _>>()?;
+
                     Ok(Self {
                         components,
                         ..acc_config
                     })
                 }
+
                 "settings" => {
                     let settings = serde_json::from_value(body)
                         .map_err(|_| format!("could not parse category {}", category))?;
+
                     Ok(Self {
                         settings,
                         ..acc_config
