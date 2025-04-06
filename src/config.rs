@@ -33,21 +33,24 @@ pub struct Settings {
     pub default_separator: String,
 }
 
-macro_rules! match_components {
-    ($key:expr, $value:expr, $(($name:expr, $settings_type:ident, $component_type:ident)),*) => {
-        match $key.to_lowercase().as_str() {
-            $(
-                $name => {
-                    let settings: $settings_type = serde_json::from_value($value.clone())
-                        .unwrap_or_else(|_| panic!("failed to parse {} config", $key));
-                    let component = $component_type {
-                        settings,
-                        ..Default::default()
-                    };
-                    Ok(Box::new(component))
-                }
-            ),*
-            _ => Err(format!("can't parse unknown component {}", $key).into()),
+// a method for Config that parses a component and returns a new instance of it
+macro_rules! parse_components {
+    ($(($name:expr, $settings_type:ident, $component_type:ident)),*) => {
+        fn parse_component(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
+            match key.to_lowercase().as_str() {
+                $(
+                    $name => {
+                        let settings: $settings_type = serde_json::from_value(value.clone())
+                            .unwrap_or_else(|_| panic!("failed to parse {} config", key));
+                        let component = $component_type {
+                            settings,
+                            ..Default::default()
+                        };
+                        Ok(Box::new(component))
+                    }
+                )*,
+                _ => Err(format!("can't parse unknown component {}", key).into()),
+            }
         }
     };
 }
@@ -105,16 +108,12 @@ impl Config {
     }
 
     // parse a component and return a new instance of it
-    fn parse_component(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
-        match_components!(
-            key,
-            value,
-            ("alsa", AlsaSettings, Alsa),
-            ("backlight", BacklightSettings, Backlight),
-            ("battery", BatterySettings, Battery),
-            ("time", TimeSettings, Time)
-        )
-    }
+    parse_components!(
+        ("alsa", AlsaSettings, Alsa),
+        ("backlight", BacklightSettings, Backlight),
+        ("battery", BatterySettings, Battery),
+        ("time", TimeSettings, Time)
+    );
 }
 
 #[cfg(test)]
