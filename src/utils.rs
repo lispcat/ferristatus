@@ -20,6 +20,6 @@ pub fn parse_test_config() -> Config {
         config_path: "tests/config.json".into(),
         ..Args::default()
     };
-    let config = Config::new(&args).expect("failed to get config");
-    config
+
+    Config::new(&args).expect("failed to get config")
 }
