@@ -80,23 +80,19 @@ impl Config {
         for (category, body) in hashmap {
             match category.to_lowercase().as_str() {
                 "components" => {
-                    config.components.append(
-                        &mut body
-                            .as_object()
-                            .unwrap_or_else(|| panic!("could not parse category: {}", category))
-                            .iter()
-                            .map(|(component_name, settings)| {
-                                Config::parse_component(component_name, settings).unwrap_or_else(
-                                    |_| {
-                                        panic!(
-                                            "could not parse component {}: {:?}",
-                                            component_name, settings
-                                        )
-                                    },
+                    config.components = body
+                        .as_object()
+                        .unwrap_or_else(|| panic!("could not parse category: {}", category))
+                        .iter()
+                        .map(|(component_name, settings)| {
+                            Config::parse_component(component_name, settings).unwrap_or_else(|_| {
+                                panic!(
+                                    "could not parse component {}: {:?}",
+                                    component_name, settings
                                 )
                             })
-                            .collect::<Vec<Box<dyn Component>>>(),
-                    );
+                        })
+                        .collect::<Vec<Box<dyn Component>>>();
                 }
                 "settings" => {
                     config.settings = serde_json::from_value(body.clone())
