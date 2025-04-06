@@ -33,6 +33,25 @@ pub struct Settings {
     pub default_separator: String,
 }
 
+macro_rules! match_components {
+    ($key:expr, $value:expr, $(($name:expr, $settings_type:ident, $component_type:ident)),*) => {
+        match $key.to_lowercase().as_str() {
+            $(
+                $name => {
+                    let settings: $settings_type = serde_json::from_value($value.clone())
+                        .unwrap_or_else(|_| panic!("failed to parse {} config", $key));
+                    let component = $component_type {
+                        settings,
+                        ..Default::default()
+                    };
+                    Ok(Box::new(component))
+                }
+            ),*
+            _ => Err(format!("can't parse unknown component {}", $key).into()),
+        }
+    };
+}
+
 // TODO: use RON instead of json
 
 impl Config {
@@ -89,45 +108,14 @@ impl Config {
 
     // parse a component and return a new instance of it
     fn parse_component(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
-        match key.to_lowercase().as_str() {
-            "alsa" => {
-                let settings: AlsaSettings = serde_json::from_value(value.clone())
-                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
-                let component = Alsa {
-                    settings,
-                    ..Default::default()
-                };
-                Ok(Box::new(component))
-            }
-            "backlight" => {
-                let settings: BacklightSettings = serde_json::from_value(value.clone())
-                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
-                let component = Backlight {
-                    settings,
-                    ..Default::default()
-                };
-                Ok(Box::new(component))
-            }
-            "battery" => {
-                let settings: BatterySettings = serde_json::from_value(value.clone())
-                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
-                let component = Battery {
-                    settings,
-                    ..Default::default()
-                };
-                Ok(Box::new(component))
-            }
-            "time" => {
-                let settings: TimeSettings = serde_json::from_value(value.clone())
-                    .unwrap_or_else(|_| panic!("failed to parse {} config", key));
-                let component = Time {
-                    settings,
-                    ..Default::default()
-                };
-                Ok(Box::new(component))
-            }
-            _ => Err(format!("can't parse unknown component {}", key).into()),
-        }
+        match_components!(
+            key,
+            value,
+            ("alsa", AlsaSettings, Alsa),
+            ("backlight", BacklightSettings, Backlight),
+            ("battery", BatterySettings, Battery),
+            ("time", TimeSettings, Time)
+        )
     }
 }
 
