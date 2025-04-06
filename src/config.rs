@@ -5,14 +5,14 @@ use smart_default::SmartDefault;
 use std::{collections::HashMap, error::Error, fs, path::PathBuf};
 
 use crate::{
-    Args,
     components::{
-        Component,
         alsa::{Alsa, AlsaSettings},
         backlight::{Backlight, BacklightSettings},
         battery::{Battery, BatterySettings},
         time::{Time, TimeSettings},
+        Component,
     },
+    Args,
 };
 
 #[derive(SmartDefault, Debug)]
@@ -78,30 +78,36 @@ impl Config {
 
     // parse HashMap and return generated Config struct
     fn parse_config(hashmap: HashMap<String, Value>) -> Result<Config, Box<dyn Error>> {
-        hashmap.iter().try_fold(
+        hashmap.into_iter().try_fold(
             Self::default(),
             |acc_config, (category, body)| match category.to_lowercase().as_str() {
-                "components" => Ok(Self {
-                    components: body
+                "components" => {
+                    let components = body
                         .as_object()
-                        .unwrap_or_else(|| panic!("could not parse category: {}", category))
+                        .ok_or_else(|| format!("could not parse category: {}", category))?
                         .iter()
                         .map(|(component_name, settings)| {
-                            Config::parse_component(component_name, settings).unwrap_or_else(|_| {
-                                panic!(
+                            Config::parse_component(component_name, settings).map_err(|_| {
+                                format!(
                                     "could not parse component {}: {:?}",
                                     component_name, settings
                                 )
                             })
                         })
-                        .collect::<Vec<Box<dyn Component>>>(),
-                    ..acc_config
-                }),
-                "settings" => Ok(Self {
-                    settings: serde_json::from_value(body.clone())
-                        .unwrap_or_else(|_| panic!("could not parse category {}", category)),
-                    ..acc_config
-                }),
+                        .collect::<Result<Vec<Box<dyn Component>>, _>>()?;
+                    Ok(Self {
+                        components,
+                        ..acc_config
+                    })
+                }
+                "settings" => {
+                    let settings = serde_json::from_value(body)
+                        .map_err(|_| format!("could not parse category {}", category))?;
+                    Ok(Self {
+                        settings,
+                        ..acc_config
+                    })
+                }
                 x => Err(format!("unknown setting category: {}", x).into()),
             },
         )
