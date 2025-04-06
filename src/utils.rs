@@ -1,5 +1,7 @@
 use std::{env, path::PathBuf};
 
+use crate::{args::Args, config::Config};
+
 pub fn default_config_path() -> PathBuf {
     let config_dir = env::var_os("XDG_CONFIG_HOME")
         .map(PathBuf::from)
@@ -11,4 +13,13 @@ pub fn default_config_path() -> PathBuf {
         });
 
     config_dir.join("ferristatus").join("config.json")
+}
+
+pub fn parse_test_config() -> Config {
+    let args = Args {
+        config_path: "tests/config.json".into(),
+        ..Args::default()
+    };
+    let config = Config::new(&args).expect("failed to get config");
+    config
 }

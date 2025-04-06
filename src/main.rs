@@ -53,13 +53,10 @@ mod tests {
 
     #[test]
     fn main() {
-        let args = Args {
+        let config = Config::new(&Args {
             config_path: "tests/config.json".into(),
             ..Args::default()
-        };
-        println!("Args: {:#?}", args);
-
-        let config = Config::new(&args).expect("failed to get config");
+        });
         println!("Config: {:#?}", config);
     }
 }
