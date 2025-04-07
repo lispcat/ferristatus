@@ -37,11 +37,6 @@ impl_default_new!(Backlight);
 
 /// methods for fetching, parsing, and calculating
 impl Backlight {
-    // pure function, simply calculate percent from values
-    fn calculate_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
-        ((brightness * 100.0) / max_brightness) as i32
-    }
-
     // read values from fs, return values
     fn read_values_from_fs(&self) -> Result<(f32, f32), Box<dyn Error>> {
         let mut br_path = self.settings.path.clone();
@@ -62,13 +57,15 @@ impl Component for Backlight {
     // update
     fn update(&mut self) -> Result<(), Box<dyn Error>> {
         let (brightness, max_brightness) = self.read_values_from_fs()?;
-        self.perc = Some(Self::calculate_percent_from_values(
-            brightness,
-            max_brightness,
-        ));
+        self.perc = Some(calc_percent_from_values(brightness, max_brightness));
         self.last_updated = Some(time::Instant::now());
         Ok(())
     }
+}
+
+// pure function, simply calculate percent from values
+fn calc_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
+    ((brightness * 100.0) / max_brightness) as i32
 }
 
 #[cfg(test)]
@@ -78,11 +75,11 @@ mod tests {
     /// test whether a given br and max_br value results in the exected perc
     #[test]
     fn percent_calc() {
-        assert_eq!(Backlight::calculate_percent_from_values(50.0, 100.0), 50);
-        assert_eq!(Backlight::calculate_percent_from_values(75.0, 100.0), 75);
-        assert_eq!(Backlight::calculate_percent_from_values(100.0, 200.0), 50);
-        assert_eq!(Backlight::calculate_percent_from_values(0.0, 100.0), 0);
-        assert_eq!(Backlight::calculate_percent_from_values(100.0, 100.0), 100);
+        assert_eq!(calc_percent_from_values(50.0, 100.0), 50);
+        assert_eq!(calc_percent_from_values(75.0, 100.0), 75);
+        assert_eq!(calc_percent_from_values(100.0, 200.0), 50);
+        assert_eq!(calc_percent_from_values(0.0, 100.0), 0);
+        assert_eq!(calc_percent_from_values(100.0, 100.0), 100);
     }
 
     //     /// simply print the current backlight percent. use `-- --nocapture`.
