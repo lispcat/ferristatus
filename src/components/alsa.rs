@@ -1,8 +1,10 @@
-use alsa::mixer::{Mixer, Selem, SelemId};
+use alsa_lib::mixer::{Mixer, Selem, SelemChannelId, SelemId};
 use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{error::Error, time};
+
+use crate::impl_default_new;
 
 use super::Component;
 
@@ -30,11 +32,9 @@ pub struct Alsa {
     pub settings: AlsaSettings,
 }
 
-impl Alsa {
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
+// TODO: create macro impl_default_new!(Alsa)
+
+impl_default_new!(Alsa);
 
 impl Component for Alsa {
     fn update(&mut self) -> Result<(), Box<dyn Error>> {
@@ -50,14 +50,14 @@ impl Component for Alsa {
 
         // Get current volume (first channel)
         let vol = selem
-            .get_playback_volume(alsa::mixer::SelemChannelId::FrontLeft)
+            .get_playback_volume(SelemChannelId::FrontLeft)
             .unwrap();
         let vol_perc_f = (vol as f64 - min as f64) / (max as f64 - min as f64) * 100.0;
         let vol_perc = vol_perc_f.round() as i32;
 
         // Get mute status
         let mute: bool = selem
-            .get_playback_switch(alsa::mixer::SelemChannelId::FrontLeft)
+            .get_playback_switch(SelemChannelId::FrontLeft)
             .unwrap()
             == 0;
 

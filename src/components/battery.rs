@@ -5,10 +5,12 @@ use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
+use crate::impl_default_new;
+
 use super::Component;
 
-// Battery struct
-
+/// Settings for the Battery component.
+/// Typically configured through the config file.
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BatterySettings {
@@ -31,6 +33,7 @@ pub struct BatterySettings {
     pub time_left: Option<BatterySubcomponentSettings>,
 }
 
+/// Subcomponents for BatterySettings
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BatterySubcomponentSettings {
@@ -41,6 +44,7 @@ pub struct BatterySubcomponentSettings {
     pub right_pad: String,
 }
 
+/// Holds current battery state and BatterySettings
 #[derive(Debug, SmartDefault)]
 pub struct Battery {
     pub battery_info: Option<BatteryInfo>,
@@ -48,14 +52,9 @@ pub struct Battery {
     pub settings: BatterySettings,
 }
 
-// battery methods
+impl_default_new!(Battery);
 
-impl Battery {
-    // initialization
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
+// Make Battery a Component
 
 impl Component for Battery {
     // update
@@ -70,7 +69,7 @@ impl Component for Battery {
     }
 }
 
-// testing
+//// testing
 
 // #[cfg(test)]
 // mod tests {

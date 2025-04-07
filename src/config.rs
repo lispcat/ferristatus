@@ -5,14 +5,14 @@ use smart_default::SmartDefault;
 use std::{collections::HashMap, error::Error, fs, path::PathBuf};
 
 use crate::{
+    Args,
     components::{
+        Component,
         alsa::{Alsa, AlsaSettings},
         backlight::{Backlight, BacklightSettings},
         battery::{Battery, BatterySettings},
         time::{Time, TimeSettings},
-        Component,
     },
-    Args,
 };
 
 #[derive(SmartDefault, Debug)]

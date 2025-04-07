@@ -3,6 +3,8 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{error::Error, fs, path::PathBuf, time};
 
+use crate::impl_default_new;
+
 use super::Component;
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -31,12 +33,10 @@ pub struct Backlight {
     pub settings: BacklightSettings,
 }
 
+impl_default_new!(Backlight);
+
 /// methods for fetching, parsing, and calculating
 impl Backlight {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     // pure function, simply calculate percent from values
     fn calculate_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
         ((brightness * 100.0) / max_brightness) as i32

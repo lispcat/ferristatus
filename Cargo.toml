@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 # acpi_client = "2.0.0"
 acpi_client = { git = "https://github.com/lispcat/acpi_client.git" }
-alsa = "0.9.1"
+alsa_lib = { package = "alsa", version = "0.9.1" }
 anyhow = "1.0.97"
 chrono = "0.4.40"
 clap = { version = "4.5.34", default-features = false, features = [

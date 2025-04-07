@@ -5,6 +5,8 @@ use chrono::{DateTime, Local};
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
+use crate::impl_default_new;
+
 use super::Component;
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -26,12 +28,9 @@ pub struct Time {
     pub settings: TimeSettings,
 }
 
-impl Time {
-    // init
-    pub fn new() -> Self {
-        Default::default()
-    }
+impl_default_new!(Time);
 
+impl Time {
     // get time using Time.format
     pub fn get(&self) -> Result<String, Box<dyn Error>> {
         let now = self.now.ok_or("No timestamp available")?;
