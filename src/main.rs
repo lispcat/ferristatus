@@ -58,9 +58,11 @@ mod tests {
             ..Args::default()
         })
         .expect("failed to get config");
-        for c in config.components.iter_mut() {
+        for c in config.components.0.iter_mut() {
             c.update().unwrap();
         }
-        println!("Config: {:#?}", config);
+        // TODO: implement an update method for each
+        // println!("TESTING: {:#?}", config);
+        println!("Config: {:#?}", config.components);
     }
 }
