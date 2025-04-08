@@ -5,9 +5,7 @@ use chrono::{DateTime, Local};
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::impl_default_new;
-
-use super::Component;
+use super::{Component, ComponentSettings};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -22,13 +20,13 @@ pub struct TimeSettings {
     pub format: Option<String>,
 }
 
+impl ComponentSettings for TimeSettings {}
+
 #[derive(Debug, SmartDefault)]
 pub struct Time {
     pub now: Option<DateTime<Local>>,
     pub settings: TimeSettings,
 }
-
-impl_default_new!(Time);
 
 impl Time {
     // get time using Time.format

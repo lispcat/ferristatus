@@ -3,9 +3,7 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{error::Error, fs, path::PathBuf, time};
 
-use crate::impl_default_new;
-
-use super::Component;
+use super::{Component, ComponentSettings};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -26,14 +24,14 @@ pub struct BacklightSettings {
     pub right_pad: String,
 }
 
+impl ComponentSettings for BacklightSettings {}
+
 #[derive(Debug, SmartDefault)]
 pub struct Backlight {
     pub perc: Option<i32>,
     pub last_updated: Option<time::Instant>,
     pub settings: BacklightSettings,
 }
-
-impl_default_new!(Backlight);
 
 /// methods for fetching, parsing, and calculating
 impl Backlight {

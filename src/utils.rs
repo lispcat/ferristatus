@@ -24,14 +24,14 @@ pub fn parse_test_config() -> Config {
     Config::new(&args).expect("failed to get config")
 }
 
-/// Implement a new() struct for a Type using $type::default()
-#[macro_export]
-macro_rules! impl_default_new {
-    ($type:ident) => {
-        impl $type {
-            pub fn new() -> $type {
-                $type::default()
-            }
-        }
-    };
-}
+// /// Implement a new() struct for a Type using $type::default()
+// #[macro_export]
+// macro_rules! impl_new {
+//     ($type:ident) => {
+//         impl $type {
+//             pub fn new() -> $type {
+//                 $type::default()
+//             }
+//         }
+//     };
+// }

@@ -4,9 +4,7 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{error::Error, time};
 
-use crate::impl_default_new;
-
-use super::Component;
+use super::{Component, ComponentSettings};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -24,6 +22,8 @@ pub struct AlsaSettings {
     pub right_pad: String,
 }
 
+impl ComponentSettings for AlsaSettings {}
+
 #[derive(Debug, SmartDefault)]
 pub struct Alsa {
     pub volume_perc: Option<i32>,
@@ -31,10 +31,6 @@ pub struct Alsa {
     pub last_updated: Option<time::Instant>,
     pub settings: AlsaSettings,
 }
-
-// TODO: create macro impl_default_new!(Alsa)
-
-impl_default_new!(Alsa);
 
 impl Component for Alsa {
     fn update(&mut self) -> Result<(), Box<dyn Error>> {
