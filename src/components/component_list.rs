@@ -6,15 +6,13 @@ use super::Component;
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 use smart_default::SmartDefault;
-use std::{
-    collections::HashMap,
-    error::Error,
-    ops::{Deref, DerefMut},
-};
+use std::{collections::HashMap, error::Error};
 
 #[derive(SmartDefault, Debug)]
 #[default(Vec::new())]
-pub struct ComponentList(pub Vec<Box<dyn Component>>);
+pub struct ComponentList {
+    pub list: Vec<Box<dyn Component>>,
+}
 
 macro_rules! component_parser {
     ( $(( $name:expr, $settings_type:ident, $component_type:ident )),* ) => {
@@ -66,22 +64,8 @@ impl<'de> Deserialize<'de> for ComponentList {
             })
             .collect::<Result<Vec<Box<dyn Component>>, D::Error>>()?;
 
-        Ok(ComponentList(component_vec))
-    }
-}
-
-/// make .iter() work without .0
-impl Deref for ComponentList {
-    type Target = Vec<Box<dyn Component>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-/// make .iter_mut() work without .0
-impl DerefMut for ComponentList {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        Ok(ComponentList {
+            list: component_vec,
+        })
     }
 }

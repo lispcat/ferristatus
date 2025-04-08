@@ -6,6 +6,12 @@ use std::{error::Error, fs, path::PathBuf};
 use crate::{components::component_list::ComponentList, Args};
 
 #[derive(SmartDefault, Debug, Deserialize)]
+pub struct Config {
+    pub settings: Settings,
+    pub components: ComponentList,
+}
+
+#[derive(SmartDefault, Debug, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
     #[default(100)]
@@ -13,12 +19,6 @@ pub struct Settings {
 
     #[default("|")]
     pub default_separator: String,
-}
-
-#[derive(SmartDefault, Debug, Deserialize)]
-pub struct Config {
-    pub settings: Settings,
-    pub components: ComponentList,
 }
 
 impl Config {
