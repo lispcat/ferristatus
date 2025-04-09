@@ -1,7 +1,7 @@
-use anyhow::Result;
+use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::{error::Error, fs, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 use crate::{components::component_list::ComponentList, Args};
 
@@ -22,7 +22,7 @@ pub struct Settings {
 }
 
 impl Config {
-    pub fn new(args: &Args) -> Result<Self, Box<dyn Error>> {
+    pub fn new(args: &Args) -> anyhow::Result<Self> {
         let path: PathBuf = args.config_path.clone();
         let contents: String = Self::read_json(&path)?;
         let config: Config = serde_json::from_str(&contents)?;
@@ -30,8 +30,8 @@ impl Config {
     }
 
     // read config file and return String
-    fn read_json(contents: &PathBuf) -> Result<String, Box<dyn Error>> {
-        Ok(fs::read_to_string(contents).map_err(|_| "failed to read config file")?)
+    fn read_json(contents: &PathBuf) -> anyhow::Result<String> {
+        fs::read_to_string(contents).with_context(|| "failed to read config file")
     }
 }
 

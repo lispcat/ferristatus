@@ -1,7 +1,6 @@
-use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::{error::Error, fs, path::PathBuf, time};
+use std::{fs, path::PathBuf, time};
 
 use super::{Component, ComponentSettings};
 
@@ -36,7 +35,7 @@ pub struct Backlight {
 /// methods for fetching, parsing, and calculating
 impl Backlight {
     // read values from fs, return values
-    fn read_values_from_fs(&self) -> Result<(f32, f32), Box<dyn Error>> {
+    fn read_values_from_fs(&self) -> anyhow::Result<(f32, f32)> {
         let mut br_path = self.settings.path.clone();
         br_path.push("brightness");
         let br_read: String = fs::read_to_string(*br_path)?;
@@ -53,7 +52,7 @@ impl Backlight {
 
 impl Component for Backlight {
     // update
-    fn update(&mut self) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self) -> anyhow::Result<()> {
         let (brightness, max_brightness) = self.read_values_from_fs()?;
         self.perc = Some(calc_percent_from_values(brightness, max_brightness));
         self.last_updated = Some(time::Instant::now());

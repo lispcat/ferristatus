@@ -6,8 +6,6 @@
 // |_|  \___|_|  |_|  |_|___/\__\__,_|\__|\__,_|___/
 //
 
-use std::error::Error;
-
 use args::Args;
 use clap::Parser;
 use config::Config;
@@ -38,12 +36,12 @@ pub mod utils;
 // Wifi,
 // Custom,
 
-fn main() -> anyhow::Result<(), Box<dyn Error>> {
+fn main() -> anyhow::Result<()> {
     // parse args
     let args = Args::parse();
     println!("Args: {:#?}", args);
 
-    let config = Config::new(&args);
+    let config = Config::new(&args)?;
     println!("Config: {:#?}", config);
 
     println!("Hello, world!");

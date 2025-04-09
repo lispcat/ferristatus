@@ -1,8 +1,7 @@
 use alsa_lib::mixer::{Mixer, Selem, SelemChannelId, SelemId};
-use anyhow::Result;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::{error::Error, time};
+use std::time;
 
 use super::{Component, ComponentSettings};
 
@@ -33,7 +32,7 @@ pub struct Alsa {
 }
 
 impl Component for Alsa {
-    fn update(&mut self) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self) -> anyhow::Result<()> {
         // Open the default mixer
         let mixer: Mixer = Mixer::new("default", false).unwrap();
 

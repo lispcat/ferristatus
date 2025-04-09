@@ -1,7 +1,7 @@
-use std::{error::Error, path::PathBuf, time::Instant};
+use std::{path::PathBuf, time::Instant};
 
 use acpi_client::{self, BatteryInfo};
-use anyhow::Result;
+use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
@@ -56,10 +56,10 @@ pub struct Battery {
 
 impl Component for Battery {
     // update
-    fn update(&mut self) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self) -> anyhow::Result<()> {
         let dir = self.settings.path.clone().into_boxed_path();
-        let ps_info =
-            BatteryInfo::new(&dir).map_err(|_| "failed to to create new BatteryInfo instance")?;
+        let ps_info = BatteryInfo::new(&dir)
+            .with_context(|| "failed to to create new BatteryInfo instance")?;
         self.battery_info = Some(ps_info);
         self.last_updated = Some(Instant::now());
 

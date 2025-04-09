@@ -43,7 +43,7 @@ impl Time {
 
 impl Component for Time {
     // update
-    fn update(&mut self) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self) -> anyhow::Result<()> {
         self.now = Some(Local::now());
         Ok(())
     }
