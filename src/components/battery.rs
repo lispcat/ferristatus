@@ -80,10 +80,12 @@ impl Component for Battery {
 impl Display for Battery {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.state.battery_info {
-            Some(battery) => write!(
+            Some(battery_info) => write!(
                 f,
                 "{}{}{}",
-                self.settings.percent.left_pad, battery.percentage, self.settings.percent.right_pad
+                self.settings.percent.left_pad,
+                battery_info.percentage.round(),
+                self.settings.percent.right_pad
             ),
             None => write!(f, "N/A"),
         }

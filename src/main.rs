@@ -65,28 +65,24 @@ mod tests {
 
     #[test]
     fn main() {
-        let mut config = Config::new(&Args {
+        let args = Args {
             config_path: "tests/config.json".into(),
-            ..Args::default()
-        })
-        .expect("failed to get config");
+        };
 
-        println!("DEBUG: {:#?}", config.components.list);
-
-        for c in config.components.list.iter_mut() {
-            c.update().unwrap()
-        }
+        let mut config = Config::new(&args).expect("failed to get config");
 
         // printing
         for _ in 0..10 {
-            println!("> updating...");
             println!(
                 "Format:  {}",
                 config
                     .components
                     .list
-                    .iter()
-                    .map(|c| c.to_string())
+                    .iter_mut()
+                    .map(|c| {
+                        c.update().unwrap();
+                        c.to_string()
+                    })
                     .collect::<Vec<String>>()
                     .join(&config.settings.default_separator)
             );

@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 use smart_default::SmartDefault;
-use std::{collections::HashMap, error::Error};
+use std::error::Error;
 
 #[derive(SmartDefault, Debug)]
 #[default(Vec::new())]
