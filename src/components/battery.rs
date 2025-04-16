@@ -6,7 +6,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use super::{Component, ComponentSettings};
+use super::{Component, ComponentSettings, ComponentState};
 
 /// Settings for the Battery component.
 /// Typically configured through the config file.
@@ -43,24 +43,35 @@ pub struct BatterySubcomponentSettings {
     pub right_pad: String,
 }
 
+#[derive(Debug, SmartDefault)]
+pub struct BatteryState {
+    pub battery_info: Option<BatteryInfo>,
+    pub last_updated: Option<Instant>,
+    pub settings: BatterySettings,
+}
+
+impl ComponentState for BatteryState {}
+
 /// Holds current battery state and BatterySettings
 #[derive(Debug, SmartDefault)]
 pub struct Battery {
-    pub battery_info: Option<BatteryInfo>,
-    pub last_updated: Option<Instant>,
+    pub state: BatteryState,
     pub settings: BatterySettings,
 }
 
 // Make Battery a Component
 
 impl Component for Battery {
+    fn name(&self) -> String {
+        String::from("battery")
+    }
     // update
     fn update(&mut self) -> anyhow::Result<()> {
         let dir = self.settings.path.clone().into_boxed_path();
         let ps_info = BatteryInfo::new(&dir)
             .with_context(|| "failed to to create new BatteryInfo instance")?;
-        self.battery_info = Some(ps_info);
-        self.last_updated = Some(Instant::now());
+        self.state.battery_info = Some(ps_info);
+        self.state.last_updated = Some(Instant::now());
 
         Ok(())
     }
@@ -68,7 +79,7 @@ impl Component for Battery {
 
 impl Display for Battery {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self.battery_info {
+        match &self.state.battery_info {
             Some(battery) => write!(
                 f,
                 "{}{}{}",

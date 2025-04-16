@@ -3,7 +3,7 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{fmt::Display, fs, path::PathBuf, time};
 
-use super::{Component, ComponentSettings};
+use super::{Component, ComponentSettings, ComponentState};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -27,9 +27,16 @@ pub struct BacklightSettings {
 impl ComponentSettings for BacklightSettings {}
 
 #[derive(Debug, SmartDefault)]
-pub struct Backlight {
+pub struct BacklightState {
     pub perc: Option<i32>,
     pub last_updated: Option<time::Instant>,
+}
+
+impl ComponentState for BacklightState {}
+
+#[derive(Debug, SmartDefault)]
+pub struct Backlight {
+    pub state: BacklightState,
     pub settings: BacklightSettings,
 }
 
@@ -52,18 +59,21 @@ impl Backlight {
 }
 
 impl Component for Backlight {
+    fn name(&self) -> String {
+        String::from("backlight")
+    }
     // update
     fn update(&mut self) -> anyhow::Result<()> {
         let (brightness, max_brightness) = self.read_values_from_fs()?;
-        self.perc = Some(calc_percent_from_values(brightness, max_brightness));
-        self.last_updated = Some(time::Instant::now());
+        self.state.perc = Some(calc_percent_from_values(brightness, max_brightness));
+        self.state.last_updated = Some(time::Instant::now());
         Ok(())
     }
 }
 
 impl Display for Backlight {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.perc {
+        match self.state.perc {
             Some(perc) => write!(
                 f,
                 "{}{}{}",

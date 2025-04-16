@@ -4,7 +4,7 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{fmt::Display, time};
 
-use super::{Component, ComponentSettings};
+use super::{Component, ComponentSettings, ComponentState};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -25,14 +25,24 @@ pub struct AlsaSettings {
 impl ComponentSettings for AlsaSettings {}
 
 #[derive(Debug, SmartDefault)]
-pub struct Alsa {
+pub struct AlsaState {
     pub volume_perc: Option<i32>,
     pub is_muted: Option<bool>,
     pub last_updated: Option<time::Instant>,
+}
+
+impl ComponentState for AlsaState {}
+
+#[derive(Debug, SmartDefault)]
+pub struct Alsa {
+    pub state: AlsaState,
     pub settings: AlsaSettings,
 }
 
 impl Component for Alsa {
+    fn name(&self) -> String {
+        String::from("alsa")
+    }
     fn update(&mut self) -> anyhow::Result<()> {
         // Open the default mixer
         let mixer: Mixer = Mixer::new("default", false).unwrap();
@@ -58,9 +68,9 @@ impl Component for Alsa {
             == 0;
 
         // update
-        self.volume_perc = Some(vol_perc);
-        self.is_muted = Some(mute);
-        self.last_updated = Some(time::Instant::now());
+        self.state.volume_perc = Some(vol_perc);
+        self.state.is_muted = Some(mute);
+        self.state.last_updated = Some(time::Instant::now());
 
         Ok(())
     }
@@ -68,7 +78,7 @@ impl Component for Alsa {
 
 impl Display for Alsa {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.volume_perc {
+        match self.state.volume_perc {
             Some(vol) => write!(
                 f,
                 "{}{}{}",

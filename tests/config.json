@@ -41,7 +41,7 @@
             "refresh_interval": 500,
             "signal": 8,
 
-            "format": "+%a %d %b %I:%M %P"
+            "format": "%a %d %b %I:%M %P"
         }
     }
 }

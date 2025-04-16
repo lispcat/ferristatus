@@ -19,20 +19,31 @@ pub struct TimeSettings {
 
     #[default("%Y-%m-%d %H:%M:%S".to_string())]
     pub format: String,
+
+    #[default(String::from(" "))]
+    pub left_pad: String,
+
+    #[default(String::from(" "))]
+    pub right_pad: String,
 }
 
 impl ComponentSettings for TimeSettings {}
 
 #[derive(Debug, SmartDefault)]
-pub struct Time {
+pub struct TimeState {
     pub now: Option<DateTime<Local>>,
+}
+
+#[derive(Debug, SmartDefault)]
+pub struct Time {
+    pub state: TimeState,
     pub settings: TimeSettings,
 }
 
 impl Time {
     // get time using Time.format
     pub fn get(&self) -> Result<String, Box<dyn Error>> {
-        let now = self.now.ok_or("No timestamp available")?;
+        let now = self.state.now.ok_or("No timestamp available")?;
         let format = self.settings.format.as_str();
 
         Ok(now.format(format).to_string())
@@ -40,19 +51,26 @@ impl Time {
 }
 
 impl Component for Time {
+    fn name(&self) -> String {
+        String::from("time")
+    }
     // update
     fn update(&mut self) -> anyhow::Result<()> {
-        self.now = Some(Local::now());
+        self.state.now = Some(Local::now());
         Ok(())
     }
 }
 
 impl Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.now {
+        match self.state.now {
             Some(_) => {
-                let time = self.get().is_ok();
-                write!(f, "\\{}\\", time)
+                let formatted = self.get().unwrap();
+                write!(
+                    f,
+                    "{}{}{}",
+                    self.settings.left_pad, formatted, self.settings.right_pad
+                )
             }
             None => write!(f, "N/A"),
         }

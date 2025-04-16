@@ -69,7 +69,7 @@ mod tests {
 
         // printing
         for c in config.components.list {
-            println!("ELEM: {}", c);
+            println!("ELEM: {:<9} | \"{}\"", c.name(), c);
         }
     }
 }

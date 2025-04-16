@@ -9,6 +9,9 @@ pub mod time;
 
 pub trait Component: Debug + Display {
     fn update(&mut self) -> anyhow::Result<()>;
+    fn name(&self) -> String;
 }
 
 pub trait ComponentSettings: Debug + for<'a> Deserialize<'a> {}
+
+pub trait ComponentState: Debug {}
