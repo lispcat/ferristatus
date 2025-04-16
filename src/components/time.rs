@@ -1,4 +1,5 @@
-use std::error::Error;
+use core::fmt;
+use std::{error::Error, fmt::Display};
 
 use anyhow::Result;
 use chrono::{DateTime, Local};
@@ -16,8 +17,8 @@ pub struct TimeSettings {
     #[default(8)]
     pub signal: u32,
 
-    #[default(Some("%Y-%m-%d %H:%M:%S".to_string()))]
-    pub format: Option<String>,
+    #[default("%Y-%m-%d %H:%M:%S".to_string())]
+    pub format: String,
 }
 
 impl ComponentSettings for TimeSettings {}
@@ -32,10 +33,7 @@ impl Time {
     // get time using Time.format
     pub fn get(&self) -> Result<String, Box<dyn Error>> {
         let now = self.now.ok_or("No timestamp available")?;
-        let format = match &self.settings.format {
-            Some(s) => s.as_str(),
-            None => return Err("No time format string specified".into()),
-        };
+        let format = self.settings.format.as_str();
 
         Ok(now.format(format).to_string())
     }
@@ -46,6 +44,18 @@ impl Component for Time {
     fn update(&mut self) -> anyhow::Result<()> {
         self.now = Some(Local::now());
         Ok(())
+    }
+}
+
+impl Display for Time {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.now {
+            Some(_) => {
+                let time = self.get().is_ok();
+                write!(f, "\\{}\\", time)
+            }
+            None => write!(f, "N/A"),
+        }
     }
 }
 

@@ -1,4 +1,5 @@
-use std::{path::PathBuf, time::Instant};
+use core::fmt;
+use std::{fmt::Display, path::PathBuf, time::Instant};
 
 use acpi_client::{self, BatteryInfo};
 use anyhow::Context;
@@ -24,11 +25,9 @@ pub struct BatterySettings {
     #[default(Vec::new())]
     pub subcomponents: Vec<String>,
 
-    #[default(None)]
-    pub percent: Option<BatterySubcomponentSettings>,
+    pub percent: BatterySubcomponentSettings,
 
-    #[default(None)]
-    pub time_left: Option<BatterySubcomponentSettings>,
+    pub time_left: BatterySubcomponentSettings,
 }
 
 impl ComponentSettings for BatterySettings {}
@@ -64,6 +63,19 @@ impl Component for Battery {
         self.last_updated = Some(Instant::now());
 
         Ok(())
+    }
+}
+
+impl Display for Battery {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self.battery_info {
+            Some(battery) => write!(
+                f,
+                "{}{}{}",
+                self.settings.percent.left_pad, battery.percentage, self.settings.percent.right_pad
+            ),
+            None => write!(f, "N/A"),
+        }
     }
 }
 

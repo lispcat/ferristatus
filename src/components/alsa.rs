@@ -1,7 +1,8 @@
 use alsa_lib::mixer::{Mixer, Selem, SelemChannelId, SelemId};
+use core::fmt;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::time;
+use std::{fmt::Display, time};
 
 use super::{Component, ComponentSettings};
 
@@ -62,6 +63,19 @@ impl Component for Alsa {
         self.last_updated = Some(time::Instant::now());
 
         Ok(())
+    }
+}
+
+impl Display for Alsa {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.volume_perc {
+            Some(vol) => write!(
+                f,
+                "{}{}{}",
+                self.settings.left_pad, vol, self.settings.right_pad
+            ),
+            None => write!(f, "N/A"),
+        }
     }
 }
 

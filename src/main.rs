@@ -53,6 +53,7 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -65,6 +66,10 @@ mod tests {
         for c in config.components.list.iter_mut() {
             c.update().unwrap();
         }
-        println!("Config: {:#?}", config.components.list);
+
+        // printing
+        for c in config.components.list {
+            println!("ELEM: {}", c);
+        }
     }
 }

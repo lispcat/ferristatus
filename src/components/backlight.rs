@@ -1,6 +1,7 @@
+use core::fmt;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::{fs, path::PathBuf, time};
+use std::{fmt::Display, fs, path::PathBuf, time};
 
 use super::{Component, ComponentSettings};
 
@@ -57,6 +58,19 @@ impl Component for Backlight {
         self.perc = Some(calc_percent_from_values(brightness, max_brightness));
         self.last_updated = Some(time::Instant::now());
         Ok(())
+    }
+}
+
+impl Display for Backlight {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.perc {
+            Some(perc) => write!(
+                f,
+                "{}{}{}",
+                self.settings.left_pad, perc, self.settings.right_pad
+            ),
+            None => write!(f, "N/A"),
+        }
     }
 }
 
