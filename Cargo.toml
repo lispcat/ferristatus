@@ -16,6 +16,7 @@ clap = { version = "4.5.34", default-features = false, features = [
     "usage",
 ] }
 humantime = "2.2.0" # use format_duration(duration).to_string() for 1h 33m
+indexmap = { version = "2.9.0", features = ["serde"] }
 libc = "0.2.171"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"

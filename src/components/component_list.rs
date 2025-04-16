@@ -3,6 +3,7 @@ use super::backlight::{Backlight, BacklightSettings};
 use super::battery::{Battery, BatterySettings};
 use super::time::{Time, TimeSettings};
 use super::Component;
+use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 use smart_default::SmartDefault;
@@ -48,8 +49,8 @@ impl<'de> Deserialize<'de> for ComponentList {
     where
         D: Deserializer<'de>,
     {
-        // Deserialize into a HashMap first
-        let components_map: HashMap<String, Value> = HashMap::deserialize(deserializer)?;
+        // Deserialize into an IndexMap first
+        let components_map: IndexMap<String, Value> = IndexMap::deserialize(deserializer)?;
 
         // Parse each component
         let component_vec = components_map

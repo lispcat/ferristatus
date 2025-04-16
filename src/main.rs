@@ -6,6 +6,8 @@
 // |_|  \___|_|  |_|  |_|___/\__\__,_|\__|\__,_|___/
 //
 
+use std::{thread, time::Duration};
+
 use args::Args;
 use clap::Parser;
 use config::Config;
@@ -48,6 +50,11 @@ fn main() -> anyhow::Result<()> {
 
     signals_watch()?;
 
+    for _ in 0..10 {
+        println!("Hello, world!");
+        thread::sleep(Duration::from_secs(1));
+    }
+
     Ok(())
 }
 
@@ -63,13 +70,28 @@ mod tests {
             ..Args::default()
         })
         .expect("failed to get config");
+
+        println!("DEBUG: {:#?}", config.components.list);
+
         for c in config.components.list.iter_mut() {
-            c.update().unwrap();
+            c.update().unwrap()
         }
 
         // printing
-        for c in config.components.list {
-            println!("ELEM: {:<9} | \"{}\"", c.name(), c);
+        for _ in 0..10 {
+            println!("> updating...");
+            println!(
+                "Format:  {}",
+                config
+                    .components
+                    .list
+                    .iter()
+                    .map(|c| c.to_string())
+                    .collect::<Vec<String>>()
+                    .join(&config.settings.default_separator)
+            );
+
+            thread::sleep(Duration::from_secs(1));
         }
     }
 }
