@@ -15,9 +15,9 @@ pub struct ComponentList {
     pub list: Vec<Box<dyn Component>>,
 }
 
-macro_rules! component_parser {
+macro_rules! component_creator {
     ( $(( $name:expr, $settings_type:ident, $component_type:ident )),* ) => {
-        fn component_parser(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
+        fn component_create(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
             match key.to_lowercase().as_str() {
                 $(
                     $name => {
@@ -35,14 +35,12 @@ macro_rules! component_parser {
     };
 }
 
-impl ComponentList {
-    component_parser!(
-        ("alsa", AlsaSettings, Alsa),
-        ("backlight", BacklightSettings, Backlight),
-        ("battery", BatterySettings, Battery),
-        ("time", TimeSettings, Time)
-    );
-}
+component_creator!(
+    ("alsa", AlsaSettings, Alsa),
+    ("backlight", BacklightSettings, Backlight),
+    ("battery", BatterySettings, Battery),
+    ("time", TimeSettings, Time)
+);
 
 impl<'de> Deserialize<'de> for ComponentList {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -66,7 +64,7 @@ impl<'de> Deserialize<'de> for ComponentList {
 
                 let (component_name, settings) = component_map.iter().next().unwrap();
 
-                ComponentList::component_parser(component_name, settings).map_err(|e| {
+                component_create(component_name, settings).map_err(|e| {
                     serde::de::Error::custom(format!(
                         "could not parse component {}: {}",
                         component_name, e
