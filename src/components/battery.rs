@@ -25,9 +25,9 @@ pub struct BatterySettings {
     #[default(Vec::new())]
     pub subcomponents: Vec<String>,
 
-    pub percent: BatterySubcomponentSettings,
+    pub percent_fmt: BatteryFmtSettings,
 
-    pub time_left: BatterySubcomponentSettings,
+    pub time_fmt: BatteryFmtSettings,
 }
 
 impl ComponentSettings for BatterySettings {}
@@ -35,7 +35,7 @@ impl ComponentSettings for BatterySettings {}
 /// Subcomponents for BatterySettings
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct BatterySubcomponentSettings {
+pub struct BatteryFmtSettings {
     #[default(String::from(" "))]
     pub left_pad: String,
 
@@ -83,9 +83,9 @@ impl Display for Battery {
             Some(battery_info) => write!(
                 f,
                 "{}{}{}",
-                self.settings.percent.left_pad,
+                self.settings.percent_fmt.left_pad,
                 battery_info.percentage.round(),
-                self.settings.percent.right_pad
+                self.settings.percent_fmt.right_pad
             ),
             None => write!(f, "N/A"),
         }

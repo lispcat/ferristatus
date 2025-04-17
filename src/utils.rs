@@ -17,7 +17,7 @@ pub fn default_config_path() -> PathBuf {
 
 pub fn parse_test_config() -> Config {
     let args = Args {
-        config_path: "tests/config.json".into(),
+        config_path: "examples/config.json".into(),
         ..Args::default()
     };
 

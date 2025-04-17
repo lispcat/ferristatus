@@ -3,15 +3,15 @@ use super::backlight::{Backlight, BacklightSettings};
 use super::battery::{Battery, BatterySettings};
 use super::time::{Time, TimeSettings};
 use super::Component;
-use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer};
-use serde_json::Value;
+use serde_yml::Value;
 use smart_default::SmartDefault;
+use std::collections::HashMap;
 use std::error::Error;
 
 #[derive(SmartDefault, Debug)]
-#[default(Vec::new())]
 pub struct ComponentList {
+    #[default(Vec::new())]
     pub list: Vec<Box<dyn Component>>,
 }
 
@@ -21,7 +21,7 @@ macro_rules! component_parser {
             match key.to_lowercase().as_str() {
                 $(
                     $name => {
-                        let settings: $settings_type = serde_json::from_value(value.clone())
+                        let settings: $settings_type = serde_yml::from_value(value.clone())
                             .map_err(|_| format!("failed to parse {} config", key))?;
                         Ok(Box::new($component_type {
                             settings,
@@ -50,12 +50,22 @@ impl<'de> Deserialize<'de> for ComponentList {
         D: Deserializer<'de>,
     {
         // Deserialize into an IndexMap first
-        let components_map: IndexMap<String, Value> = IndexMap::deserialize(deserializer)?;
+        let components_vec: Vec<HashMap<String, Value>> = Vec::deserialize(deserializer)?;
 
         // Parse each component
-        let component_vec = components_map
+        let component_list = components_vec
             .iter()
-            .map(|(component_name, settings)| {
+            .map(|component_map| {
+                // each element in vec should be a HashMap with one entry
+                if component_map.len() != 1 {
+                    return Err(serde::de::Error::custom(format!(
+                        "each component should have only one key-value pair: {:?}",
+                        component_map
+                    )));
+                }
+
+                let (component_name, settings) = component_map.iter().next().unwrap();
+
                 ComponentList::component_parser(component_name, settings).map_err(|e| {
                     serde::de::Error::custom(format!(
                         "could not parse component {}: {}",
@@ -66,7 +76,7 @@ impl<'de> Deserialize<'de> for ComponentList {
             .collect::<Result<Vec<Box<dyn Component>>, D::Error>>()?;
 
         Ok(ComponentList {
-            list: component_vec,
+            list: component_list,
         })
     }
 }

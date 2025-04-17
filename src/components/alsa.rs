@@ -15,14 +15,22 @@ pub struct AlsaSettings {
     #[default(5)]
     pub signal: u32,
 
+    pub volume_fmt: AlsaFmtSettings,
+
+    pub muted_fmt: AlsaFmtSettings,
+}
+
+impl ComponentSettings for AlsaSettings {}
+
+#[derive(Debug, SmartDefault, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct AlsaFmtSettings {
     #[default(String::from(" "))]
     pub left_pad: String,
 
     #[default(String::from(" "))]
     pub right_pad: String,
 }
-
-impl ComponentSettings for AlsaSettings {}
 
 #[derive(Debug, SmartDefault)]
 pub struct AlsaState {
@@ -78,13 +86,23 @@ impl Component for Alsa {
 
 impl Display for Alsa {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.state.volume_perc {
-            Some(vol) => write!(
-                f,
-                "{}{}{}",
-                self.settings.left_pad, vol, self.settings.right_pad
-            ),
-            None => write!(f, "N/A"),
+        match (self.state.volume_perc, self.state.is_muted) {
+            (Some(vol), Some(is_muted)) => {
+                if is_muted {
+                    write!(
+                        f,
+                        "{}MUTE({}){}",
+                        self.settings.muted_fmt.left_pad, vol, self.settings.muted_fmt.right_pad,
+                    )
+                } else {
+                    write!(
+                        f,
+                        "{}{}{}",
+                        self.settings.volume_fmt.left_pad, vol, self.settings.volume_fmt.right_pad
+                    )
+                }
+            }
+            _ => write!(f, "N/A"),
         }
     }
 }

@@ -24,13 +24,13 @@ pub struct Settings {
 impl Config {
     pub fn new(args: &Args) -> anyhow::Result<Self> {
         let path: PathBuf = args.config_path.clone();
-        let contents: String = Self::read_json(&path)?;
-        let config: Config = serde_json::from_str(&contents)?;
+        let contents: String = Self::read_file(&path)?;
+        let config: Config = serde_yml::from_str(&contents)?;
         Ok(config)
     }
 
     // read config file and return String
-    fn read_json(contents: &PathBuf) -> anyhow::Result<String> {
+    fn read_file(contents: &PathBuf) -> anyhow::Result<String> {
         fs::read_to_string(contents).with_context(|| "failed to read config file")
     }
 }

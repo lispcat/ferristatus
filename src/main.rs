@@ -66,7 +66,7 @@ mod tests {
     #[test]
     fn main() {
         let args = Args {
-            config_path: "tests/config.json".into(),
+            config_path: "examples/config.yaml".into(),
         };
 
         let mut config = Config::new(&args).expect("failed to get config");
