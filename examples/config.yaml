@@ -31,17 +31,18 @@ components:
 
       path: "/sys/class/power_supply/BAT0"
 
-      subcomponents:
-        - percent
-        - time_left
-
-      percent_fmt:
-        left_pad: " B: "
-        right_pad: "% "
-
-      time_fmt:
-        left_pad: ""
-        right_pad: " "
+      format:
+        vars:
+          def: "{percent}% {time_remaining}"
+        full: " Full({percent}) "
+        charging: "  {$def} "
+        not_charging: " ? {$def} "
+        discharging:
+          - [100, "  {$def} "]
+          - [70,  "  {$def} "]
+          - [50,  "  {$def} "]
+          - [30,  "  {$def} "]
+          - [10,  "  {$def} "]
 
   - Time:
       refresh_interval: 500
