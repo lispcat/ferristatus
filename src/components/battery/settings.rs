@@ -1,9 +1,9 @@
-use std::{collections::HashMap, fmt::Display, hash::Hash, path::PathBuf, str::FromStr};
+use std::{collections::HashMap, path::PathBuf};
 
 use acpi_client::{self, BatteryInfo, ChargingState};
 use serde::{Deserialize, Deserializer};
 use smart_default::SmartDefault;
-use strfmt::{strfmt, DisplayStr};
+use crate::utils::{de_vars_as_flat_hashmap, safe_strfmt};
 
 use crate::components::ComponentSettings;
 
@@ -114,33 +114,3 @@ impl BatteryFormatSettings {
     }
 }
 
-// TODO: relocate below?
-
-fn de_vars_as_flat_hashmap<'de, D>(deserializer: D) -> Result<HashMap<String, String>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    // First deserialize into a Vec of HashMaps
-    let vec_maps = Vec::<HashMap<String, String>>::deserialize(deserializer)?;
-
-    // Then flatten into a single HashMap
-    let mut result = HashMap::new();
-    for map in vec_maps {
-        result.extend(map);
-    }
-
-    Ok(result)
-}
-
-fn safe_strfmt<K, T: DisplayStr>(template: &str, vars: &HashMap<K, T>) -> String
-where
-    K: Hash + Eq + FromStr + Display,
-{
-    match strfmt(template, vars) {
-        Ok(formatted) => formatted,
-        Err(_) => {
-            // Return the original template
-            template.to_string()
-        }
-    }
-}
