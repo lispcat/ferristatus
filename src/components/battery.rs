@@ -1,3 +1,5 @@
+pub mod state;
+
 use core::fmt;
 use std::{
     collections::HashMap, fmt::Display, hash::Hash, path::PathBuf, str::FromStr, time::Instant,
@@ -5,45 +7,17 @@ use std::{
 
 use acpi_client::{self, BatteryInfo, ChargingState};
 use anyhow::Context;
-use once_cell::sync::Lazy;
-use regex::Regex;
 use serde::{Deserialize, Deserializer};
 use smart_default::SmartDefault;
+use state::BatteryState;
 use strfmt::{strfmt, DisplayStr};
 
-use super::{Component, ComponentSettings, ComponentState};
+use super::{Component, ComponentSettings};
 
 #[derive(Debug, SmartDefault)]
 pub struct Battery {
     pub state: BatteryState,
     pub settings: BatterySettings,
-}
-
-#[derive(Debug, SmartDefault)]
-pub struct BatteryState {
-    pub battery_info: Option<BatteryInfo>,
-    pub last_updated: Option<Instant>,
-}
-impl ComponentState for BatteryState {}
-
-impl BatteryState {
-    /// Trims the trailing " [0-9]+s" from the end of a humantime::format_duration output.
-    fn get_time_remaining(&self) -> anyhow::Result<String> {
-        let duration = self.battery_info.as_ref().unwrap().time_remaining;
-        let time = &humantime::format_duration(duration).to_string();
-        static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s[0-9]+s$").unwrap());
-        Ok(RE.replace(time, "").to_string())
-    }
-
-    /// get the current battery percent as a whole number
-    fn get_percent_rounded(&self) -> anyhow::Result<String> {
-        let battery_info = self
-            .battery_info
-            .as_ref()
-            .context("could not get battery_info")?;
-        let percent = battery_info.percentage.round() as i32;
-        Ok(percent.to_string())
-    }
 }
 
 /// Settings for the Battery component.
