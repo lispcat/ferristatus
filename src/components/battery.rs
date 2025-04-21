@@ -62,7 +62,7 @@ pub struct BatterySettings {
     #[default(vec![])]
     pub subcomponents: Vec<String>,
 
-    #[serde(deserialize_with = "BatteryFormatSettings::deserialize_with_vars_preprocessing")]
+    #[serde(deserialize_with = "BatteryFormatSettings::de_fields_with_vars_preprocessing")]
     pub format: BatteryFormatSettings,
 }
 impl ComponentSettings for BatterySettings {}
@@ -73,6 +73,7 @@ pub struct BatteryFormatSettings {
     #[default(HashMap::from([
         ("def".to_string(), "{percent}% {time_remaining}".to_string())
     ]))]
+    #[serde(deserialize_with = "de_vars_as_flat_hashmap")]
     pub vars: HashMap<String, String>,
 
     #[default(" Full({percent}) ".to_string())]
@@ -96,7 +97,7 @@ pub struct BatteryFormatSettings {
 }
 
 impl BatteryFormatSettings {
-    fn deserialize_with_vars_preprocessing<'de, D>(
+    fn de_fields_with_vars_preprocessing<'de, D>(
         deserializer: D,
     ) -> Result<BatteryFormatSettings, D::Error>
     where
@@ -200,6 +201,22 @@ impl Display for Battery {
             }
         }
     }
+}
+
+fn de_vars_as_flat_hashmap<'de, D>(deserializer: D) -> Result<HashMap<String, String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    // First deserialize into a Vec of HashMaps
+    let vec_maps = Vec::<HashMap<String, String>>::deserialize(deserializer)?;
+
+    // Then flatten into a single HashMap
+    let mut result = HashMap::new();
+    for map in vec_maps {
+        result.extend(map);
+    }
+
+    Ok(result)
 }
 
 fn safe_strfmt<K, T: DisplayStr>(template: &str, vars: &HashMap<K, T>) -> String
