@@ -25,6 +25,14 @@ components:
       left_pad: " b: "
       right_pad: " "
 
+      # format:
+      #   # support vars (trait bounds? trait methods? ComponentSettings)
+      #   vars:
+      #     - def: "{percent}"
+      #   levels:
+      #     - [100, " 󰌶 {$def} "]
+      #   # default: " 󰌶 {$def} "
+
   - Battery:
       refresh_interval: 1000
       signal: 7
@@ -35,14 +43,15 @@ components:
         vars:
           - def: "{percent}% {time_remaining}"
         full: " Full({percent}) "
-        charging: "  {$def} "
-        not_charging: " ? {$def} "
         discharging:
           - [100, "  {$def} "]
           - [70,  "  {$def} "]
           - [50,  "  {$def} "]
           - [30,  "  {$def} "]
           - [10,  "  {$def} "]
+        charging: "  {$def} "
+        not_charging: " - {$def} "
+        default: " ? {$def} "
 
   - Time:
       refresh_interval: 500

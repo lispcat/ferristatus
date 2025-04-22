@@ -55,6 +55,9 @@ pub struct BatteryFormatSettings {
         (10,  "  {$def} ".to_string()),
     ])]
     pub discharging: Vec<(i32, String)>,
+
+    #[default(" ? {$def} ")]
+    pub default: String,
 }
 
 impl BatteryFormatSettings {
@@ -89,6 +92,7 @@ impl BatteryFormatSettings {
                 levels.sort_by_key(|(k, _)| *k);
                 levels
             },
+            default: safe_strfmt(&raw_settings.default, &dollar_prepended_vars),
         };
 
         Ok(formatted)

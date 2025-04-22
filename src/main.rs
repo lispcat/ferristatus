@@ -64,12 +64,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn main() {
+    fn main() -> anyhow::Result<()> {
         let args = Args {
             config_path: "examples/config.yaml".into(),
         };
 
-        let mut config = Config::new(&args).expect("failed to get config");
+        let mut config = match Config::new(&args) {
+            Ok(c) => c,
+            Err(e) => {
+                anyhow::bail!("crocdile crocodale -- {e}")
+            },
+        };
+        // let mut config = Config::new(&args)
+        //     .unwrap_or_else(|e| format!("failed to create config"));
 
         // printing
         for _ in 0..10 {
@@ -89,5 +96,6 @@ mod tests {
 
             thread::sleep(Duration::from_secs(1));
         }
+        Ok(())
     }
 }
