@@ -18,8 +18,6 @@ pub struct Battery {
 
 // battery implementations
 
-impl Battery {}
-
 impl Component for Battery {
     fn name(&self) -> String {
         String::from("battery")
@@ -34,6 +32,23 @@ impl Component for Battery {
 
         Ok(())
     }
+    // get_format_string
+    // eval_strfmt
+}
+
+impl Battery {
+    fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
+        let mut vars = HashMap::new();
+
+        vars.insert(
+            "percent".to_owned(),
+            self.state.get_percent_rounded().unwrap_or_else(|e| format!("({e})")));
+        vars.insert(
+            "time_remaining".to_string(),
+            self.state.get_time_remaining().unwrap_or_else(|e| format!("({e})")));
+
+        Ok(strfmt(format_str, &vars)?)
+    }
 }
 
 impl Display for Battery {
@@ -43,22 +58,7 @@ impl Display for Battery {
             Some(battery_info) => {
                 let format_string = self.settings.format.get_format_string(battery_info);
 
-                let vars = HashMap::from([
-                    (
-                        "percent".to_string(),
-                        self.state
-                            .get_percent_rounded()
-                            .unwrap_or_else(|e| format!("N/A ({})", e)),
-                    ),
-                    (
-                        "time_remaining".to_string(),
-                        self.state
-                            .get_time_remaining()
-                            .unwrap_or_else(|e| format!("N/A ({})", e)),
-                    ),
-                ]);
-
-                let res = strfmt(&format_string, &vars).unwrap();
+                let res = self.eval_strfmt(&format_string).map_err(|_| fmt::Error)?;
 
                 write!(f, "{}", res)
             }

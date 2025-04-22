@@ -5,7 +5,7 @@ use serde::{Deserialize, Deserializer};
 use smart_default::SmartDefault;
 use crate::utils::{de_vars_as_flat_hashmap, safe_strfmt};
 
-use crate::components::ComponentSettings;
+use crate::components::{ComponentFormat, ComponentSettings};
 
 /// Settings for the Battery component.
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -59,6 +59,7 @@ pub struct BatteryFormatSettings {
     #[default(" ? {$def} ")]
     pub default: String,
 }
+impl ComponentFormat for BatteryFormatSettings {}
 
 impl BatteryFormatSettings {
     pub fn de_fields_with_vars_preprocessing<'de, D>(
