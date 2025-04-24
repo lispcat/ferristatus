@@ -22,6 +22,7 @@ impl Component for Battery {
     fn name(&self) -> String {
         String::from("battery")
     }
+    
     /// Updates the Battery struct
     fn update(&mut self) -> anyhow::Result<()> {
         let dir = self.settings.path.clone().into_boxed_path();
@@ -67,10 +68,6 @@ impl Component for Battery {
 
         Ok(strfmt(format_str, &vars)?)
     }
-
-}
-
-impl Battery {
 
 }
 
