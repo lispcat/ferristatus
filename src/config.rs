@@ -3,7 +3,9 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{fs, path::PathBuf};
 
-use crate::{components::component_list::ComponentList, Args};
+use crate::Args;
+
+use crate::components::ComponentList;
 
 #[derive(SmartDefault, Debug, Deserialize)]
 pub struct Config {

@@ -1,12 +1,6 @@
 use serde::Deserialize;
 use std::fmt::{Debug, Display};
 
-pub mod alsa;
-pub mod backlight;
-pub mod battery;
-pub mod component_list;
-pub mod time;
-
 pub trait Component: Debug + Display {
     fn name(&self) -> String;
     fn update(&mut self) -> anyhow::Result<()>;
