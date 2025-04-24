@@ -1,9 +1,9 @@
 mod core;
-mod instance_list;
+mod component_list;
 mod alsa;
 mod backlight;
 mod battery;
 mod time;
 
 pub use core::*;
-pub use instance_list::*;
+pub use component_list::*;
