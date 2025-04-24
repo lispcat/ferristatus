@@ -1,7 +1,7 @@
-pub mod battery;
+pub mod core;
 pub mod settings;
 pub mod state;
 
-pub use battery::*;
+pub use core::*;
 pub use settings::*;
 pub use state::*;

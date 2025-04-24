@@ -1,3 +1,3 @@
-pub mod time;
+pub mod core;
 
-pub use time::*;
+pub use core::*;

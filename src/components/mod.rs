@@ -1,13 +1,9 @@
-pub mod components;
-pub mod component_list;
-pub mod alsa;
-pub mod backlight;
-pub mod battery;
-pub mod time;
+mod core;
+mod instance_list;
+mod alsa;
+mod backlight;
+mod battery;
+mod time;
 
-pub use components::*;
-pub use component_list::*;
-pub use alsa::*;
-pub use backlight::*;
-pub use battery::*;
-pub use time::*;
+pub use core::*;
+pub use instance_list::*;

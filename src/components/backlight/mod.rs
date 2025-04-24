@@ -1,3 +1,3 @@
-pub mod backlight;
+pub mod core;
 
-pub use backlight::*;
+pub use core::*;
