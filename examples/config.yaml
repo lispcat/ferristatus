@@ -41,7 +41,7 @@ components:
 
       format:
         vars:
-          - def: "{percent}% {time_remaining}"
+          - $def: "{percent}% {time_remaining}"
         full: " Full({percent}) "
         discharging:
           - [100, "  {$def} "]

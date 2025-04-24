@@ -59,6 +59,12 @@ impl Component for Time {
         self.state.now = Some(Local::now());
         Ok(())
     }
+    fn get_format_string(&self) -> String {
+        todo!()
+    }
+    fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
+        todo!()
+    }
 }
 
 impl Display for Time {

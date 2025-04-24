@@ -1,7 +1,7 @@
 use core::fmt;
 use std::{collections::HashMap, fmt::Display, time::Instant};
 
-use acpi_client::{self, BatteryInfo};
+use acpi_client::{self, BatteryInfo, ChargingState};
 use anyhow::Context;
 use smart_default::SmartDefault;
 use strfmt::strfmt;
@@ -32,11 +32,29 @@ impl Component for Battery {
 
         Ok(())
     }
-    // get_format_string
-    // eval_strfmt
-}
 
-impl Battery {
+    /// gets the appropriate format string based off ChargingState
+    fn get_format_string(&self) -> String {
+        let battery_info = self.state.battery_info.as_ref().unwrap();
+        let state = &battery_info.state;
+        let fmt = &self.settings.format;
+        match state {
+            ChargingState::Full => fmt.full.clone(),
+            ChargingState::Charging => fmt.charging.clone(),
+            ChargingState::NotCharging => fmt.not_charging.clone(),
+            ChargingState::Discharging => {
+                let levels = fmt.discharging.clone();
+                let percent = battery_info.percentage.round() as i32;
+
+                levels
+                    .iter()
+                    .find(|(ceiling, _)| percent <= *ceiling)
+                    .map(|(_, fmt_str)| fmt_str.clone())
+                    .unwrap_or_else(|| "?".to_string())
+            }
+        }
+    }
+
     fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
         let mut vars = HashMap::new();
 
@@ -49,14 +67,19 @@ impl Battery {
 
         Ok(strfmt(format_str, &vars)?)
     }
+
+}
+
+impl Battery {
+
 }
 
 impl Display for Battery {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.state.battery_info {
             None => write!(f, "N/A"),
-            Some(battery_info) => {
-                let format_string = self.settings.format.get_format_string(battery_info);
+            Some(_) => {
+                let format_string = self.get_format_string();
 
                 let res = self.eval_strfmt(&format_string).map_err(|_| fmt::Error)?;
 

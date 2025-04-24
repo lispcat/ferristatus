@@ -1,6 +1,5 @@
 use std::{collections::HashMap, env, fmt::Display, path::PathBuf, str::FromStr};
 
-use serde::{Deserialize, Deserializer};
 use std::hash::Hash;
 use strfmt::{strfmt, DisplayStr};
 
@@ -28,21 +27,6 @@ pub fn parse_test_config() -> Config {
     Config::new(&args).expect("failed to get config")
 }
 
-pub fn de_vars_as_flat_hashmap<'de, D>(deserializer: D) -> Result<HashMap<String, String>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    // First deserialize into a Vec of HashMaps
-    let vec_maps = Vec::<HashMap<String, String>>::deserialize(deserializer)?;
-
-    // Then flatten into a single HashMap
-    let mut result = HashMap::new();
-    for map in vec_maps {
-        result.extend(map);
-    }
-
-    Ok(result)
-}
 
 pub fn safe_strfmt<K, T: DisplayStr>(template: &str, vars: &HashMap<K, T>) -> String
 where

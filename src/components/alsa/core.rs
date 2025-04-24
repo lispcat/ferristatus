@@ -81,6 +81,12 @@ impl Component for Alsa {
 
         Ok(())
     }
+    fn get_format_string(&self) -> String {
+        todo!()
+    }
+    fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
+        todo!()
+    }
 }
 
 impl Display for Alsa {

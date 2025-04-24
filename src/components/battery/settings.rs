@@ -1,10 +1,10 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use acpi_client::{self, BatteryInfo, ChargingState};
+use crate::utils::safe_strfmt;
 use serde::{Deserialize, Deserializer};
 use smart_default::SmartDefault;
-use crate::utils::{de_vars_as_flat_hashmap, safe_strfmt};
 
+use crate::components::component_utils::{de_vars_as_flat_hashmap, VarPreprocessing};
 use crate::components::{ComponentFormat, ComponentSettings};
 
 /// Settings for the Battery component.
@@ -20,10 +20,7 @@ pub struct BatterySettings {
     #[default(PathBuf::from("/sys/class/power_supply/BAT0"))]
     pub path: PathBuf,
 
-    #[default(vec![])]
-    pub subcomponents: Vec<String>,
-
-    #[serde(deserialize_with = "BatteryFormatSettings::de_fields_with_vars_preprocessing")]
+    #[serde(deserialize_with = "BatteryFormatSettings::de_strfmt")]
     pub format: BatteryFormatSettings,
 }
 impl ComponentSettings for BatterySettings {}
@@ -60,9 +57,14 @@ pub struct BatteryFormatSettings {
     pub default: String,
 }
 impl ComponentFormat for BatteryFormatSettings {}
+impl VarPreprocessing for BatteryFormatSettings {
+    fn get_levels(&self) -> &Vec<(i32, String)> {
+        &self.discharging
+    }
+}
 
 impl BatteryFormatSettings {
-    pub fn de_fields_with_vars_preprocessing<'de, D>(
+    pub fn de_strfmt<'de, D>(
         deserializer: D,
     ) -> Result<BatteryFormatSettings, D::Error>
     where
@@ -71,11 +73,9 @@ impl BatteryFormatSettings {
         // Deserialize into the struct directly
         let raw_settings = BatteryFormatSettings::deserialize(deserializer)?;
 
-        let dollar_prepended_vars: HashMap<_, _> = raw_settings
-            .vars
-            .iter()
-            .map(|(k, v)| (format!("${}", k), v.clone()))
-            .collect();
+        // prepend each key from vars with a dollar sign
+        // let dollar_prepended_vars = raw_settings.dollar_prepended_vars();
+        let dollar_prepended_vars = raw_settings.vars.clone();
 
         // Apply formatting transformations
         let formatted = BatteryFormatSettings {
@@ -83,39 +83,11 @@ impl BatteryFormatSettings {
             full: safe_strfmt(&raw_settings.full, &dollar_prepended_vars),
             charging: safe_strfmt(&raw_settings.charging, &dollar_prepended_vars),
             not_charging: safe_strfmt(&raw_settings.not_charging, &dollar_prepended_vars),
-            discharging: {
-                let mut levels: Vec<(i32, String)> = raw_settings
-                    .discharging
-                    .clone()
-                    .into_iter()
-                    .map(|(k, v)| (k, safe_strfmt(&v, &dollar_prepended_vars)))
-                    .collect();
-                levels.sort_by_key(|(k, _)| *k);
-                levels
-            },
+            discharging: raw_settings.safe_strfmt_levels(&dollar_prepended_vars),
             default: safe_strfmt(&raw_settings.default, &dollar_prepended_vars),
         };
 
         Ok(formatted)
     }
 
-    /// gets the appropriate format string based off ChargingState
-    pub fn get_format_string(&self, battery_info: &BatteryInfo) -> String {
-        match battery_info.state {
-            ChargingState::Full => self.full.clone(),
-            ChargingState::Charging => self.charging.clone(),
-            ChargingState::NotCharging => self.not_charging.clone(),
-            ChargingState::Discharging => {
-                let levels = self.discharging.clone();
-                let percent = battery_info.percentage.round() as i32;
-
-                levels
-                    .iter()
-                    .find(|(ceiling, _)| percent <= *ceiling)
-                    .map(|(_, fmt_str)| fmt_str.clone())
-                    .unwrap_or_else(|| "?".to_string())
-            }
-        }
-    }
 }
-

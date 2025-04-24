@@ -1,38 +1,10 @@
 use core::fmt;
-use serde::Deserialize;
 use smart_default::SmartDefault;
-use std::{fmt::Display, fs, path::PathBuf, time};
+use std::{fmt::Display, fs, time};
 
-use crate::components::{Component, ComponentSettings, ComponentState};
+use crate::components::Component;
 
-#[derive(Debug, SmartDefault, Deserialize)]
-#[serde(default, deny_unknown_fields)]
-pub struct BacklightSettings {
-    #[default(1000)]
-    pub refresh_interval: u32,
-
-    #[default(6)]
-    pub signal: u32,
-
-    #[default(Box::from(PathBuf::from("/sys/class/backlight/acpi_video0")))]
-    pub path: Box<PathBuf>,
-
-    #[default(String::from(" "))]
-    pub left_pad: String,
-
-    #[default(String::from(" "))]
-    pub right_pad: String,
-}
-
-impl ComponentSettings for BacklightSettings {}
-
-#[derive(Debug, SmartDefault)]
-pub struct BacklightState {
-    pub perc: Option<i32>,
-    pub last_updated: Option<time::Instant>,
-}
-
-impl ComponentState for BacklightState {}
+use super::{BacklightSettings, BacklightState};
 
 #[derive(Debug, SmartDefault)]
 pub struct Backlight {
@@ -68,6 +40,12 @@ impl Component for Backlight {
         self.state.perc = Some(calc_percent_from_values(brightness, max_brightness));
         self.state.last_updated = Some(time::Instant::now());
         Ok(())
+    }
+    fn get_format_string(&self) -> String {
+        todo!()
+    }
+    fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
+        todo!()
     }
 }
 
