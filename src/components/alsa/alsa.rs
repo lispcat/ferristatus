@@ -4,7 +4,7 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{fmt::Display, time};
 
-use super::{Component, ComponentSettings, ComponentState};
+use crate::components::{Component, ComponentSettings, ComponentState};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -38,7 +38,6 @@ pub struct AlsaState {
     pub is_muted: Option<bool>,
     pub last_updated: Option<time::Instant>,
 }
-
 impl ComponentState for AlsaState {}
 
 #[derive(Debug, SmartDefault)]

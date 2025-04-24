@@ -3,7 +3,7 @@ use serde::Deserialize;
 use smart_default::SmartDefault;
 use std::{fmt::Display, fs, path::PathBuf, time};
 
-use super::{Component, ComponentSettings, ComponentState};
+use crate::components::{Component, ComponentSettings, ComponentState};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]

@@ -6,7 +6,7 @@ use chrono::{DateTime, Local};
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use super::{Component, ComponentSettings};
+use crate::components::{Component, ComponentSettings};
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
