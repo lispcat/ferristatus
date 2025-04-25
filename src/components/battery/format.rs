@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::utils::safe_strfmt;
-use serde::{Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer};
 use smart_default::SmartDefault;
 
 use crate::components::utils::de_vars_as_flat_hashmap;
@@ -45,19 +45,21 @@ impl ComponentFormat for BatteryFormatSettings {
         D: Deserializer<'de>,
     {
         // Deserialize into the struct directly
-        let fmt = BatteryFormatSettings::deserialize(deserializer)?;
+        let format = BatteryFormatSettings::deserialize(deserializer)?;
 
         // prepend each key from vars with a dollar sign
-        let vars = fmt.vars.clone();
+        let vars = format.vars.clone();
 
         // Apply formatting transformations
         let formatted = BatteryFormatSettings {
             vars: vars.clone(),
-            full: safe_strfmt(&fmt.full, &vars),
-            charging: safe_strfmt(&fmt.charging, &vars),
-            not_charging: safe_strfmt(&fmt.not_charging, &vars),
-            discharging: fmt.safe_strfmt_levels(&vars),
-            default: safe_strfmt(&fmt.default, &vars),
+            full: safe_strfmt(&format.full, &vars),
+            charging: safe_strfmt(&format.charging, &vars),
+            not_charging: safe_strfmt(&format.not_charging, &vars),
+            discharging: format
+                .safe_strfmt_levels(&vars)
+                .map_err(|e| de::Error::custom(format!("{e}")))?,
+            default: safe_strfmt(&format.default, &vars),
         };
 
         Ok(formatted)

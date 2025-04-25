@@ -1,10 +1,10 @@
-use core::fmt;
-use std::{collections::HashMap, fmt::Display, time::Instant};
+use crate::components::Component;
 use acpi_client::{self, BatteryInfo, ChargingState};
 use anyhow::Context;
+use core::fmt;
 use smart_default::SmartDefault;
+use std::{collections::HashMap, fmt::Display, time::Instant};
 use strfmt::strfmt;
-use crate::components::Component;
 
 pub mod format;
 pub mod settings;
