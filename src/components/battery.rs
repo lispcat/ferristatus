@@ -3,12 +3,16 @@ use std::{collections::HashMap, fmt::Display, time::Instant};
 
 use acpi_client::{self, BatteryInfo, ChargingState};
 use anyhow::Context;
+use settings::BatterySettings;
 use smart_default::SmartDefault;
+use state::BatteryState;
 use strfmt::strfmt;
 
 use crate::components::Component;
 
-use super::{BatterySettings, BatteryState};
+pub mod format;
+pub mod settings;
+pub mod state;
 
 #[derive(Debug, SmartDefault)]
 pub struct Battery {
@@ -22,7 +26,7 @@ impl Component for Battery {
     fn name(&self) -> String {
         String::from("battery")
     }
-    
+
     /// Updates the Battery struct
     fn update(&mut self) -> anyhow::Result<()> {
         let dir = self.settings.path.clone().into_boxed_path();
@@ -61,14 +65,19 @@ impl Component for Battery {
 
         vars.insert(
             "percent".to_owned(),
-            self.state.get_percent_rounded().unwrap_or_else(|e| format!("({e})")));
+            self.state
+                .get_percent_rounded()
+                .unwrap_or_else(|e| format!("({e})")),
+        );
         vars.insert(
             "time_remaining".to_string(),
-            self.state.get_time_remaining().unwrap_or_else(|e| format!("({e})")));
+            self.state
+                .get_time_remaining()
+                .unwrap_or_else(|e| format!("({e})")),
+        );
 
         Ok(strfmt(format_str, &vars)?)
     }
-
 }
 
 impl Display for Battery {

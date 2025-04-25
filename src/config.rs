@@ -4,7 +4,6 @@ use smart_default::SmartDefault;
 use std::{fs, path::PathBuf};
 
 use crate::Args;
-
 use crate::components::ComponentList;
 
 #[derive(SmartDefault, Debug, Deserialize)]

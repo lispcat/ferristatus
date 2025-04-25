@@ -13,11 +13,11 @@ use clap::Parser;
 use config::Config;
 use signals::signals_watch;
 
-pub mod args;
-pub mod components;
-pub mod config;
-pub mod signals;
-pub mod utils;
+mod args;
+mod components;
+mod config;
+mod signals;
+mod utils;
 
 // ideas:
 // it's separated into blocks/modules

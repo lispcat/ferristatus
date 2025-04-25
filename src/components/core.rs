@@ -1,5 +1,8 @@
 use serde::{Deserialize, Deserializer};
-use std::{collections::HashMap, fmt::{Debug, Display}};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+};
 
 use crate::utils::safe_strfmt;
 
@@ -19,7 +22,8 @@ pub trait ComponentFormat: Debug {
     /// Custom deserializer that does strfmt preprocessing with vars
     fn de_strfmt<'de, D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: Deserializer<'de>, Self: Sized;
+        D: Deserializer<'de>,
+        Self: Sized;
 
     fn get_levels(&self) -> Option<&Vec<(i32, String)>>;
 
@@ -38,4 +42,3 @@ pub trait ComponentFormat: Debug {
 
 /// last-fetched state of the component
 pub trait ComponentState: Debug {}
-

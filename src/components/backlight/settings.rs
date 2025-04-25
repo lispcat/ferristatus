@@ -24,4 +24,3 @@ pub struct BacklightSettings {
 }
 
 impl ComponentSettings for BacklightSettings {}
-

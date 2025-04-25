@@ -3,8 +3,9 @@ use std::path::PathBuf;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::components::battery::BatteryFormatSettings;
 use crate::components::{ComponentFormat, ComponentSettings};
+
+use super::format::BatteryFormatSettings;
 
 /// Settings for the Battery component.
 #[derive(Debug, SmartDefault, Deserialize)]
