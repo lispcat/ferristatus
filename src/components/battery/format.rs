@@ -4,7 +4,7 @@ use crate::utils::safe_strfmt;
 use serde::{Deserialize, Deserializer};
 use smart_default::SmartDefault;
 
-use crate::components::component_utils::de_vars_as_flat_hashmap;
+use crate::components::utils::de_vars_as_flat_hashmap;
 use crate::components::ComponentFormat;
 
 #[derive(Debug, SmartDefault, Clone, Deserialize)]

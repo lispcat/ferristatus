@@ -1,3 +1,14 @@
+
+mod utils;
+mod component_list;
+
+mod alsa;
+mod battery;
+mod time;
+mod backlight;
+
+pub use component_list::ComponentList;
+
 use serde::{Deserialize, Deserializer};
 use std::{
     collections::HashMap,

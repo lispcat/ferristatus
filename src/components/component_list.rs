@@ -1,8 +1,6 @@
 use super::alsa::{Alsa, AlsaSettings};
-use super::backlight::settings::BacklightSettings;
-use super::backlight::Backlight;
-use super::battery::settings::BatterySettings;
-use super::battery::Battery;
+use super::backlight::{Backlight, BacklightSettings};
+use super::battery::{Battery, BatterySettings};
 use super::time::{Time, TimeSettings};
 use super::Component;
 use serde::{Deserialize, Deserializer};

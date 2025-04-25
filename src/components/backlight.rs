@@ -1,13 +1,13 @@
 use core::fmt;
-use settings::BacklightSettings;
 use smart_default::SmartDefault;
 use state::BacklightState;
 use std::{fmt::Display, fs, time};
-
 use crate::components::Component;
 
 pub mod settings;
 pub mod state;
+
+pub use settings::*;
 
 #[derive(Debug, SmartDefault)]
 pub struct Backlight {

@@ -1,18 +1,17 @@
 use core::fmt;
 use std::{collections::HashMap, fmt::Display, time::Instant};
-
 use acpi_client::{self, BatteryInfo, ChargingState};
 use anyhow::Context;
-use settings::BatterySettings;
 use smart_default::SmartDefault;
-use state::BatteryState;
 use strfmt::strfmt;
-
 use crate::components::Component;
 
 pub mod format;
 pub mod settings;
 pub mod state;
+
+pub use settings::*;
+pub use state::*;
 
 #[derive(Debug, SmartDefault)]
 pub struct Battery {
