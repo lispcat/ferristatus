@@ -1,7 +1,7 @@
 use std::{collections::HashMap, env, fmt::Display, path::PathBuf, str::FromStr};
 
 use std::hash::Hash;
-use strfmt::{strfmt, DisplayStr};
+use strfmt::{DisplayStr, strfmt};
 
 use crate::{args::Args, config::Config};
 
@@ -26,7 +26,6 @@ pub fn parse_test_config() -> Config {
 
     Config::new(&args).expect("failed to get config")
 }
-
 
 pub fn safe_strfmt<K, T: DisplayStr>(template: &str, vars: &HashMap<K, T>) -> String
 where

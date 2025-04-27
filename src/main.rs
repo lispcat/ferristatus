@@ -73,7 +73,7 @@ mod tests {
             Ok(c) => c,
             Err(e) => {
                 anyhow::bail!("crocdile crocodale -- {e}")
-            },
+            }
         };
         // let mut config = Config::new(&args)
         //     .unwrap_or_else(|e| format!("failed to create config"));
@@ -83,15 +83,15 @@ mod tests {
             println!(
                 "Format:  {}",
                 config
-                .components
-                .list
-                .iter_mut()
-                .map(|c| {
-                    c.update().unwrap();
-                    c.to_string()
-                })
-                .collect::<Vec<String>>()
-                .join(&config.settings.default_separator)
+                    .components
+                    .list
+                    .iter_mut()
+                    .map(|c| {
+                        c.update().unwrap();
+                        c.to_string()
+                    })
+                    .collect::<Vec<String>>()
+                    .join(&config.settings.default_separator)
             );
 
             thread::sleep(Duration::from_secs(1));
