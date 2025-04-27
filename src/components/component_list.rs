@@ -50,20 +50,15 @@ impl<'de> Deserialize<'de> for ComponentList {
         // Deserialize into an IndexMap first
         let components_vec: Vec<HashMap<String, Value>> = Vec::deserialize(deserializer)?;
 
+        let components_flattened: Vec<(String, Value)> = components_vec
+            .into_iter()
+            .flat_map(|map| map.into_iter())
+            .collect();
+
         // Parse each component
-        let component_list = components_vec
+        let component_list = components_flattened
             .iter()
-            .map(|component_map| {
-                // each element in vec should be a HashMap with one entry
-                if component_map.len() != 1 {
-                    return Err(serde::de::Error::custom(format!(
-                        "each component should have only one key-value pair: {:?}",
-                        component_map
-                    )));
-                }
-
-                let (component_name, settings) = component_map.iter().next().unwrap();
-
+            .map(|(component_name, settings)| {
                 component_create(component_name, settings).map_err(|e| {
                     serde::de::Error::custom(format!(
                         "could not parse component {}: {}",
