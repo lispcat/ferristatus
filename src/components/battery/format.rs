@@ -48,10 +48,7 @@ impl ComponentFormatSettings for BatteryFormatSettings {
         &self.vars
     }
 
-    fn de_strfmt_formatting(
-        orig: &Self,
-        vars: HashMap<String, String>,
-    ) -> Result<Self, String>
+    fn de_strfmt_formatting(orig: &Self, vars: HashMap<String, String>) -> Result<Self, String>
     where
         Self: Sized,
     {
@@ -60,12 +57,9 @@ impl ComponentFormatSettings for BatteryFormatSettings {
             full: safe_strfmt(&orig.full, &vars),
             charging: safe_strfmt(&orig.charging, &vars),
             not_charging: safe_strfmt(&orig.not_charging, &vars),
-            discharging: orig
-                .safe_strfmt_levels(&vars)
-                .map_err(|e| format!("{e}"))?,
+            discharging: orig.safe_strfmt_levels(&vars).map_err(|e| format!("{e}"))?,
             default: safe_strfmt(&orig.default, &vars),
         };
         Ok(new)
     }
 }
-

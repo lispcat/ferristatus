@@ -121,7 +121,6 @@ impl From<AlsaSettings> for Alsa {
     }
 }
 
-
 // trait Test {
 //     fn new_from_settings<T>(settings: T) -> Self
 //     where
