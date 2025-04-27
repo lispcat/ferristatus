@@ -66,18 +66,18 @@ impl Display for Backlight {
     }
 }
 
-// pure function, simply calculate percent from values
-fn calc_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
-    ((brightness * 100.0) / max_brightness) as i32
-}
-
 impl From<BacklightSettings> for Backlight {
     fn from(source: BacklightSettings) -> Self {
         Self {
             settings: source,
-            ..Default::default()
+            ..Self::default()
         }
     }
+}
+
+// pure function, simply calculate percent from values
+fn calc_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
+    ((brightness * 100.0) / max_brightness) as i32
 }
 
 #[cfg(test)]

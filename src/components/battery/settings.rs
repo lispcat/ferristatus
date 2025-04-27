@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::components::{ComponentFormat, ComponentSettings};
+use crate::components::{ComponentFormatSettings, ComponentSettings};
 
 use super::format::BatteryFormatSettings;
 

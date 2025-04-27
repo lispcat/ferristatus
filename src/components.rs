@@ -23,16 +23,15 @@ pub trait Component: Debug + Display
     fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String>;
     fn new_from_settings<T>(settings: T) -> Self
     where
-        T: ComponentSettings,
-        Self: From<T>
+        T: ComponentSettings + Into<Self>, Self: Sized
     {
-        Self::from(settings)
+        settings.into()
     }
 }
 
 pub trait ComponentSettings: Debug + for<'a> Deserialize<'a> {}
 
-pub trait ComponentFormat: Debug {
+pub trait ComponentFormatSettings: Debug {
     /// Custom deserializer that does strfmt preprocessing with vars
     fn de_strfmt<'de, D>(deserializer: D) -> Result<Self, D::Error>
     where

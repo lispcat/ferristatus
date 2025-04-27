@@ -87,7 +87,7 @@ impl From<TimeSettings> for Time {
     fn from(source: TimeSettings) -> Self {
         Self {
             settings: source,
-            ..Default::default()
+            ..Self::default()
         }
     }
 }

@@ -116,7 +116,7 @@ impl From<AlsaSettings> for Alsa {
     fn from(source: AlsaSettings) -> Self {
         Self {
             settings: source,
-            ..Default::default()
+            ..Self::default()
         }
     }
 }
