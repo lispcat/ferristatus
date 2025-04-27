@@ -1,5 +1,5 @@
 use crate::utils::safe_strfmt;
-use serde::{Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer};
 use std::{
     collections::HashMap,
     error::Error,
@@ -36,9 +36,31 @@ pub trait ComponentFormatSettings: Debug {
     fn de_strfmt<'de, D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
-        Self: Sized;
+        Self: Sized + Deserialize<'de>,
+    {
+        // Deserialize raw settings
+        let format = Self::deserialize(deserializer)?;
+
+        // copy from vars field
+        let vars = format.get_vars().clone();
+
+        // Apply formatting transformations
+        let formatted = Self::de_strfmt_formatting(&format, vars)
+            .map_err(de::Error::custom)?;
+
+        Ok(formatted)
+    }
+
+    fn get_vars(&self) -> &HashMap<String, String>;
 
     fn get_levels(&self) -> Option<&Vec<(i32, String)>>;
+
+    fn de_strfmt_formatting<'de>(
+        orig: &Self,
+        vars: HashMap<String, String>,
+    ) -> Result<Self, String>
+    where
+        Self: Sized;
 
     fn safe_strfmt_levels(
         &self,
