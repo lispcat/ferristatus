@@ -15,32 +15,66 @@ pub struct ComponentList {
     pub list: Vec<Box<dyn Component>>,
 }
 
-macro_rules! component_creator {
-    ( $(( $name:expr, $settings_type:ident, $component_type:ident )),* ) => {
-        fn component_create(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
-            match key.to_lowercase().as_str() {
-                $(
-                    $name => {
-                        let settings: $settings_type = serde_yml::from_value(value.clone())
-                            .map_err(|_| format!("failed to parse {} config", key))?;
-                        Ok(Box::new($component_type {
-                            settings,
-                            ..Default::default()
-                        }))
-                    }
-                )*,
-                _ => Err(format!("can't parse unknown component {}", key).into()),
-            }
-        }
-    };
-}
+// macro_rules! component_creator {
+//     ( $(( $name:expr, $settings_type:ident, $component_type:ident )),* ) => {
+//         fn component_create(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
+//             match key.to_lowercase().as_str() {
+//                 $(
+//                     $name => {
+//                         let settings: $settings_type = serde_yml::from_value(value.clone())
+//                             .map_err(|_| format!("failed to parse {} config", key))?;
+//                         Ok(Box::new($component_type {
+//                             settings,
+//                             ..Default::default()
+//                         }))
+//                     }
+//                 )*,
+//                 _ => Err(format!("can't parse unknown component {}", key).into()),
+//             }
+//         }
+//     };
+// }
 
-component_creator!(
-    ("alsa", AlsaSettings, Alsa),
-    ("backlight", BacklightSettings, Backlight),
-    ("battery", BatterySettings, Battery),
-    ("time", TimeSettings, Time)
-);
+// component_creator!(
+//     ("alsa", AlsaSettings, Alsa),
+//     ("backlight", BacklightSettings, Backlight),
+//     ("battery", BatterySettings, Battery),
+//     ("time", TimeSettings, Time)
+// );
+
+fn component_create(key: &String,value: &Value) -> Result<Box<dyn Component>,Box<dyn Error>>{
+    match key.to_lowercase().as_str(){
+        "alsa" => {
+            let settings: AlsaSettings = serde_yml::from_value(value.clone())
+                .map_err(|_|format!("failed to parse {} config",key))?;
+            Ok(Box::new(Alsa {
+                settings, ..Default::default()
+            }))
+        }
+        "backlight" => {
+            let settings: BacklightSettings = serde_yml::from_value(value.clone())
+                .map_err(|_|format!("failed to parse {} config",key))?;
+            Ok(Box::new(Backlight {
+                settings, ..Default::default()
+            }))
+        }
+        "battery" => {
+            let settings: BatterySettings = serde_yml::from_value(value.clone())
+                .map_err(|_|format!("failed to parse {} config",key))?;
+            Ok(Box::new(Battery {
+                settings, ..Default::default()
+            }))
+        }
+        "time" => {
+            let settings: TimeSettings = serde_yml::from_value(value.clone())
+                .map_err(|_|format!("failed to parse {} config",key))?;
+            Ok(Box::new(Time {
+                settings, ..Default::default()
+            }))
+        },
+        _ => Err(format!("can't parse unknown component {}",key).into()),
+    }
+}
 
 impl<'de> Deserialize<'de> for ComponentList {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
