@@ -42,37 +42,29 @@ pub struct ComponentList {
 //     ("time", TimeSettings, Time)
 // );
 
-fn component_create(key: &String,value: &Value) -> Result<Box<dyn Component>,Box<dyn Error>>{
-    match key.to_lowercase().as_str(){
+fn component_create(key: &String, value: &Value) -> Result<Box<dyn Component>, Box<dyn Error>> {
+    match key.to_lowercase().as_str() {
         "alsa" => {
             let settings: AlsaSettings = serde_yml::from_value(value.clone())
-                .map_err(|_|format!("failed to parse {} config",key))?;
-            Ok(Box::new(Alsa {
-                settings, ..Default::default()
-            }))
+                .map_err(|_| format!("failed to parse {} config", key))?;
+            Ok(Box::new(Alsa::new_from_settings(settings)))
         }
         "backlight" => {
             let settings: BacklightSettings = serde_yml::from_value(value.clone())
-                .map_err(|_|format!("failed to parse {} config",key))?;
-            Ok(Box::new(Backlight {
-                settings, ..Default::default()
-            }))
+                .map_err(|_| format!("failed to parse {} config", key))?;
+            Ok(Box::new(Backlight::new_from_settings(settings)))
         }
         "battery" => {
             let settings: BatterySettings = serde_yml::from_value(value.clone())
-                .map_err(|_|format!("failed to parse {} config",key))?;
-            Ok(Box::new(Battery {
-                settings, ..Default::default()
-            }))
+                .map_err(|_| format!("failed to parse {} config", key))?;
+            Ok(Box::new(Battery::new_from_settings(settings)))
         }
         "time" => {
             let settings: TimeSettings = serde_yml::from_value(value.clone())
-                .map_err(|_|format!("failed to parse {} config",key))?;
-            Ok(Box::new(Time {
-                settings, ..Default::default()
-            }))
-        },
-        _ => Err(format!("can't parse unknown component {}",key).into()),
+                .map_err(|_| format!("failed to parse {} config", key))?;
+            Ok(Box::new(Time::new_from_settings(settings)))
+        }
+        _ => Err(format!("can't parse unknown component {}", key).into()),
     }
 }
 

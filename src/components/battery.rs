@@ -94,6 +94,15 @@ impl Display for Battery {
     }
 }
 
+impl From<BatterySettings> for Battery {
+    fn from(source: BatterySettings) -> Self {
+        Self {
+            settings: source,
+            ..Default::default()
+        }
+    }
+}
+
 //// testing
 
 // #[cfg(test)]

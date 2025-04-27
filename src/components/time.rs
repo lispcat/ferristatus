@@ -83,6 +83,15 @@ impl Display for Time {
     }
 }
 
+impl From<TimeSettings> for Time {
+    fn from(source: TimeSettings) -> Self {
+        Self {
+            settings: source,
+            ..Default::default()
+        }
+    }
+}
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;

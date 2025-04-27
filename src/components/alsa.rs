@@ -112,6 +112,34 @@ impl Display for Alsa {
     }
 }
 
+impl From<AlsaSettings> for Alsa {
+    fn from(source: AlsaSettings) -> Self {
+        Self {
+            settings: source,
+            ..Default::default()
+        }
+    }
+}
+
+
+// trait Test {
+//     fn new_from_settings<T>(settings: T) -> Self
+//     where
+//         T: ComponentSettings,
+//         Self: From<T>;
+// }
+
+// impl Test for Alsa {
+//     fn new_from_settings<T>(settings: T) -> Self
+//     where
+//         T: ComponentSettings,
+//         Self: From<T>
+//     {
+//         // You could use methods from ComponentSettings here if needed
+//         Self::from(settings)
+//     }
+// }
+
 #[cfg(test)]
 mod tests {
     // use super::*;
