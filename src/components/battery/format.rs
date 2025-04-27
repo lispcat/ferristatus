@@ -69,3 +69,57 @@ impl ComponentFormatSettings for BatteryFormatSettings {
         Some(&self.discharging)
     }
 }
+
+// TODO: reduce ComponentFormatSettings custom impls to just the formatted var.
+
+trait ComponentFormatSettingsTest {
+    fn get_vars(&self) -> &HashMap<String, String>;
+    fn de_strfmt<'de, D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+        Self: Sized + Deserialize<'de>,
+    {
+        // Deserialize into the struct directly
+        let format = Self::deserialize(deserializer)?;
+
+        let vars = format.get_vars().clone();
+
+        // Apply formatting transformations
+        let formatted = Self::de_strfmt_formatting(&format, vars).map_err(de::Error::custom)?;
+
+        Ok(formatted)
+    }
+
+    fn de_strfmt_formatting<'de>(
+        orig: &Self,
+        vars: HashMap<String, String>,
+    ) -> Result<Self, String>
+    where
+        Self: Sized;
+}
+
+impl ComponentFormatSettingsTest for BatteryFormatSettings {
+    fn de_strfmt_formatting(
+        orig: &Self,
+        vars: HashMap<String, String>,
+    ) -> Result<Self, String>
+    where
+        Self: Sized,
+    {
+        let new = BatteryFormatSettings {
+            vars: vars.clone(),
+            full: safe_strfmt(&orig.full, &vars),
+            charging: safe_strfmt(&orig.charging, &vars),
+            not_charging: safe_strfmt(&orig.not_charging, &vars),
+            discharging: orig
+                .safe_strfmt_levels(&vars)
+                .map_err(|e| format!("{e}"))?,
+            default: safe_strfmt(&orig.default, &vars),
+        };
+        Ok(new)
+    }
+
+    fn get_vars(&self) -> &HashMap<String, String> {
+        &self.vars
+    }
+}
