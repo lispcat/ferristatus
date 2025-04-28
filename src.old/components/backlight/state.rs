@@ -5,7 +5,7 @@ use crate::components::ComponentState;
 
 #[derive(Debug, SmartDefault)]
 pub struct BacklightState {
-    pub perc: Option<i32>,
+    pub percent: Option<i32>,
     pub last_updated: Option<time::Instant>,
 }
 

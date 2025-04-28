@@ -1,0 +1,29 @@
+settings:
+
+  check_interval: 100
+  default_separator: "|"
+
+components:
+
+  - Backlight:
+      refresh_interval: 500
+      signal: 6
+
+      path: "/sys/class/backlight/acpi_video0"
+
+      format:
+        default: "  {p} "
+        levels:
+          - [100, " A {p} "]
+          - [50 , " B {p} "]
+          - [25 , " C {p} "]
+
+  # - Time:
+  #     refresh_interval: 500
+  #     signal: 8
+
+  #     time: "%a %d %b %I:%M %P"
+
+  #     format:
+  #       default: " {t} "
+        

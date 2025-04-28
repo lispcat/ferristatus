@@ -1,15 +1,11 @@
-use crate::components::Component;
-use core::fmt;
+use std::{collections::HashMap, fs, path::PathBuf, time};
+
+use itertools::Itertools;
+use serde::Deserialize;
 use smart_default::SmartDefault;
-use state::BacklightState;
-use std::{collections::HashMap, fmt::Display, fs, time};
 use strfmt::strfmt;
 
-pub mod settings;
-pub mod state;
-
-pub use settings::*;
-// pub use state::*;
+use super::Component;
 
 #[derive(Debug, SmartDefault)]
 pub struct Backlight {
@@ -17,122 +13,97 @@ pub struct Backlight {
     pub settings: BacklightSettings,
 }
 
-/// methods for fetching, parsing, and calculating
-impl Backlight {
-    // read values from fs, return values
-    fn read_values_from_fs(&self) -> anyhow::Result<(f32, f32)> {
-        let mut br_path = self.settings.path.clone();
-        br_path.push("brightness");
-        let br_read: String = fs::read_to_string(*br_path)?;
-        let br: f32 = br_read.trim().parse()?;
-
-        let mut max_br_path = self.settings.path.clone();
-        max_br_path.push("max_brightness");
-        let max_br_read: String = fs::read_to_string(*max_br_path)?;
-        let max_br: f32 = max_br_read.trim().parse()?;
-
-        Ok((br, max_br))
-    }
-}
-
 impl Component for Backlight {
     fn name(&self) -> String {
-        String::from("backlight")
+        "backlight".to_owned()
     }
-    // update
+
     fn update(&mut self) -> anyhow::Result<()> {
-        let (brightness, max_brightness) = self.read_values_from_fs()?;
-        self.state.perc = Some(calc_percent_from_values(brightness, max_brightness));
+        let (brightness, max_brightness) =
+            read_brightness_values_from_fs(self.settings.path.clone())?;
+        let percent = ((brightness * 100.0) / max_brightness) as i32;
+
+        self.state.percent = Some(percent);
         self.state.last_updated = Some(time::Instant::now());
         Ok(())
     }
-    fn get_format_string(&self) -> String {
-        let format = &self.settings.format;
-        match self.state.perc {
-            None => "N/A".to_owned(),
-            Some(percent) => {
-                let levels = format.levels.clone();
 
-                let res = levels
-                    .iter()
-                    .find(|(ceiling, _)| percent <= *ceiling)
-                    .map(|(_, format_str)| format_str.clone())
-                    .unwrap_or_else(|| "?".to_string());
-                res
-            },
-        }
+    fn get_format_str(&self) -> anyhow::Result<String> {
+        let percent = &self.state.percent;
+        let levels = &self.settings.format.levels;
+        let res = match (percent, levels) {
+            // percent is None
+            (None, _) => "(N/A)".to_owned(),
+            // levels is None, use default formatter
+            (Some(_), None) => self.settings.format.default.clone(),
+            // levels is Some
+            (Some(perc), Some(lvls)) => lvls
+                .iter()
+                .sorted_by(|a, b| a.0.cmp(&b.0))
+                .find(|(ceiling, _)| perc <= ceiling)
+                .map(|(_, format_str)| format_str.clone())
+                .unwrap_or_else(|| "(N/A: could not find level)".to_owned())
+        };
+        Ok(res)
     }
-    fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
-        let mut vars: HashMap<String, String> = HashMap::new();
 
-        vars.insert(
-            "percent".to_owned(),
-            match self.state.perc {
-                Some(p) => p.to_string(),
+    fn format(&self) -> anyhow::Result<String> {
+        let format_string = self.get_format_str()?;
+        let vars: HashMap<String, String> = HashMap::from([(
+            "p".to_owned(),
+            match self.state.percent {
+                Some(v) => v.to_string(),
                 None => "N/A".to_string(),
             },
-        );
-
-        let res = strfmt(format_str, &vars)
-            .unwrap_or_else(|e| format!("({})", e));
+        )]);
+        let res = strfmt(&format_string, &vars)?;
         Ok(res)
     }
 }
 
-impl Display for Backlight {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.state.perc {
-            None => write!(f, "{}", "N/A".to_owned()),
-            Some(_) => {
-                let format_string = self.get_format_string();
+fn read_brightness_values_from_fs(path: PathBuf) -> anyhow::Result<(f32, f32)> {
+    let mut br_path = path.clone();
+    br_path.push("brightness");
+    let br_read: String = fs::read_to_string(br_path)?;
+    let br: f32 = br_read.trim().parse()?;
 
-                let res = self.eval_strfmt(&format_string).map_err(|_| fmt::Error)?;
+    let mut max_br_path = path.clone();
+    max_br_path.push("max_brightness");
+    let max_br_read: String = fs::read_to_string(max_br_path)?;
+    let max_br: f32 = max_br_read.trim().parse()?;
 
-                write!(f, "{}", res)
-            }
-        }
-    }
+    Ok((br, max_br))
 }
 
-impl From<BacklightSettings> for Backlight {
-    fn from(source: BacklightSettings) -> Self {
-        Self {
-            settings: source,
-            ..Self::default()
-        }
-    }
+#[derive(Debug, SmartDefault)]
+pub struct BacklightState {
+    pub percent: Option<i32>,
+    pub last_updated: Option<time::Instant>,
 }
 
-// pure function, simply calculate percent from values
-fn calc_percent_from_values(brightness: f32, max_brightness: f32) -> i32 {
-    ((brightness * 100.0) / max_brightness) as i32
+#[derive(Debug, SmartDefault, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct BacklightSettings {
+    #[default(1000)]
+    pub refresh_interval: u32,
+
+    #[default(6)]
+    pub signal: u32,
+
+    #[default(PathBuf::from("/sys/class/backlight/acpi_video0"))]
+    pub path: PathBuf,
+
+    #[default(BacklightFormatSettings::default())]
+    pub format: BacklightFormatSettings,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Debug, SmartDefault, Clone, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct BacklightFormatSettings {
+    #[default("  {p} ")]
+    pub default: String,
 
-    /// test whether a given br and max_br value results in the exected perc
-    #[test]
-    fn percent_calc() {
-        assert_eq!(calc_percent_from_values(50.0, 100.0), 50);
-        assert_eq!(calc_percent_from_values(75.0, 100.0), 75);
-        assert_eq!(calc_percent_from_values(100.0, 200.0), 50);
-        assert_eq!(calc_percent_from_values(0.0, 100.0), 0);
-        assert_eq!(calc_percent_from_values(100.0, 100.0), 100);
-    }
-
-    //     /// simply print the current backlight percent. use `-- --nocapture`.
-    //     #[test]
-    //     fn current_percent() {
-    //         let mut bl: Backlight = Default::default();
-    //         bl.update().expect("could not update Backlight");
-    //         println!(
-    //             "> Current Backlight:
-    // \t{:?}
-    // \t{:?}
-    // \t{:?}",
-    //             bl.settings.path, bl.perc, bl.last_updated
-    //         );
-    //     }
+    #[default(None)]
+    pub levels: Option<Vec<(i32, String)>>,
 }
+

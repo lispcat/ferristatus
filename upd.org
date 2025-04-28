@@ -1,0 +1,21 @@
+
+* Config
+
+** Settings
+
+*** check_interval
+
+*** default_separator
+
+** Components (ComponentList)
+
+*** Alsa {
+  AlsaSettings
+  AlsaState
+}
+
+*** Backlight
+
+*** Battery
+
+*** Time
