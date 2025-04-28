@@ -22,16 +22,12 @@ components:
       refresh_interval: 500
       signal: 6
 
-      left_pad: " b: "
-      right_pad: " "
-
-      # format:
-      #   # support vars (trait bounds? trait methods? ComponentSettings)
-      #   vars:
-      #     - def: "{percent}"
-      #   levels:
-      #     - [100, " 󰌶 {$def} "]
-      #   # default: " 󰌶 {$def} "
+      format:
+        vars:
+          - $def: "{percent}"
+        levels:
+          - [100, "  {$def} "]
+        default: "  {$def} "
 
   - Battery:
       refresh_interval: 1000

@@ -6,7 +6,6 @@ use smart_default::SmartDefault;
 use std::{collections::HashMap, fmt::Display, time::Instant};
 use strfmt::strfmt;
 
-pub mod format;
 pub mod settings;
 pub mod state;
 
@@ -60,7 +59,7 @@ impl Component for Battery {
     }
 
     fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
-        let mut vars = HashMap::new();
+        let mut vars: HashMap<String, String> = HashMap::new();
 
         vars.insert(
             "percent".to_owned(),
@@ -86,7 +85,9 @@ impl Display for Battery {
             Some(_) => {
                 let format_string = self.get_format_string();
 
-                let res = self.eval_strfmt(&format_string).map_err(|_| fmt::Error)?;
+                let res = self
+                    .eval_strfmt(&format_string)
+                    .unwrap_or_else(|e| format!("({})", e));
 
                 write!(f, "{}", res)
             }

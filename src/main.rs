@@ -87,7 +87,7 @@ mod tests {
                     .list
                     .iter_mut()
                     .map(|c| {
-                        c.update().unwrap();
+                        c.update().expect("component update failed");
                         c.to_string()
                     })
                     .collect::<Vec<String>>()

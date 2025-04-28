@@ -2,7 +2,8 @@ use crate::components::Component;
 use core::fmt;
 use smart_default::SmartDefault;
 use state::BacklightState;
-use std::{fmt::Display, fs, time};
+use std::{collections::HashMap, fmt::Display, fs, time};
+use strfmt::strfmt;
 
 pub mod settings;
 pub mod state;
@@ -46,22 +47,49 @@ impl Component for Backlight {
         Ok(())
     }
     fn get_format_string(&self) -> String {
-        todo!()
+        let format = &self.settings.format;
+        match self.state.perc {
+            None => "N/A".to_owned(),
+            Some(percent) => {
+                let levels = format.levels.clone();
+
+                let res = levels
+                    .iter()
+                    .find(|(ceiling, _)| percent <= *ceiling)
+                    .map(|(_, format_str)| format_str.clone())
+                    .unwrap_or_else(|| "?".to_string());
+                res
+            },
+        }
     }
     fn eval_strfmt(&self, format_str: &str) -> anyhow::Result<String> {
-        todo!()
+        let mut vars: HashMap<String, String> = HashMap::new();
+
+        vars.insert(
+            "percent".to_owned(),
+            match self.state.perc {
+                Some(p) => p.to_string(),
+                None => "N/A".to_string(),
+            },
+        );
+
+        let res = strfmt(format_str, &vars)
+            .unwrap_or_else(|e| format!("({})", e));
+        Ok(res)
     }
 }
 
 impl Display for Backlight {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.state.perc {
-            Some(perc) => write!(
-                f,
-                "{}{}{}",
-                self.settings.left_pad, perc, self.settings.right_pad
-            ),
-            None => write!(f, "N/A"),
+            None => write!(f, "{}", "N/A".to_owned()),
+            Some(_) => {
+                let format_string = self.get_format_string();
+
+                let res = self.eval_strfmt(&format_string).map_err(|_| fmt::Error)?;
+
+                write!(f, "{}", res)
+            }
         }
     }
 }

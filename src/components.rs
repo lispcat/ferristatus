@@ -4,8 +4,6 @@ mod battery;
 mod time;
 mod utils;
 
-pub use component_traits::*;
-
 pub mod component_traits {
 
     use crate::utils::safe_strfmt;
@@ -82,7 +80,7 @@ pub mod component_traits {
     pub trait ComponentState: Debug {}
 }
 
-pub use component_list::*;
+pub use component_traits::*;
 
 pub mod component_list {
 
@@ -164,3 +162,5 @@ pub mod component_list {
         }
     }
 }
+
+pub use component_list::*;
