@@ -8,11 +8,10 @@ use crate::config::default_config_path;
 #[command(author, version, about)]
 pub struct Args {
     #[arg(
-        short = 'c',
+        short,
         long = "config",
-        help = "Path to config file",
         default_value_os_t = default_config_path(),
-        value_parser = clap::builder::PathBufValueParser::new()
     )]
+    /// Path to config file
     pub config_path: PathBuf,
 }

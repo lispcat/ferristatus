@@ -1,10 +1,13 @@
+use args::Args;
+use clap::Parser;
+
 mod args;
 mod components;
 mod config;
 
 fn main() {
     // parse args
-    // let args = Args::parse();
+    let args = Args::parse();
 
     // load config
 
