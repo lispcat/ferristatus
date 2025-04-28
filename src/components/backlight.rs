@@ -19,8 +19,13 @@ impl Component for Backlight {
     }
 
     fn update(&mut self) -> anyhow::Result<()> {
-        let (brightness, max_brightness) =
-            read_brightness_values_from_fs(self.settings.path.clone())?;
+        let path = &self.settings.path;
+        let brightness: f32 = fs::read_to_string(path.join("brightness"))?
+            .trim()
+            .parse()?;
+        let max_brightness: f32 = fs::read_to_string(path.join("max_brightness"))?
+            .trim()
+            .parse()?;
         let percent = ((brightness * 100.0) / max_brightness) as i32;
 
         self.state.percent = Some(percent);
@@ -59,20 +64,6 @@ impl Component for Backlight {
         let res = strfmt(&format_string, &vars)?;
         Ok(res)
     }
-}
-
-fn read_brightness_values_from_fs(path: PathBuf) -> anyhow::Result<(f32, f32)> {
-    let mut br_path = path.clone();
-    br_path.push("brightness");
-    let br_read: String = fs::read_to_string(br_path)?;
-    let br: f32 = br_read.trim().parse()?;
-
-    let mut max_br_path = path.clone();
-    max_br_path.push("max_brightness");
-    let max_br_read: String = fs::read_to_string(max_br_path)?;
-    let max_br: f32 = max_br_read.trim().parse()?;
-
-    Ok((br, max_br))
 }
 
 #[derive(Debug, SmartDefault)]
