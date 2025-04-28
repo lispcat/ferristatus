@@ -23,7 +23,7 @@ mod tests {
 
     use crate::{args::Args, components::Component, config::Config};
 
-    use super::*;
+    
 
     #[test]
     fn main() -> anyhow::Result<()> {

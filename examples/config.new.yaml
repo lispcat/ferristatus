@@ -18,6 +18,20 @@ components:
           - [50 , " B {p} "]
           - [25 , " C {p} "]
 
+  - Battery:
+      format:
+        full: " Full({p}) "
+        charging: "  {p}% {t} "
+        discharging:
+          - [100, "  {p}% {t} "]
+          - [70,  "  {p}% {t} "]
+          - [50,  "  {p}% {t} "]
+          - [30,  "  {p}% {t} "]
+          - [10,  "  {p}% {t} "]
+        not_charging: " ? {p}% {t} "
+        default: " ? {p}% {t} "
+
+
   # - Time:
   #     refresh_interval: 500
   #     signal: 8

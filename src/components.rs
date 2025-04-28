@@ -1,9 +1,11 @@
 mod backlight;
+mod battery;
 
-use std::{collections::HashMap, fmt::Debug, fmt::Display};
+use std::{collections::HashMap, fmt::Debug};
 
 use anyhow::Context;
 use backlight::{Backlight, BacklightSettings};
+use battery::{Battery, BatterySettings};
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
@@ -13,31 +15,36 @@ use smart_default::SmartDefault;
 #[derive(Debug)]
 pub enum ComponentType {
     Backlight(Backlight),
+    Battery(Battery),
     // Time(Time),
 }
 
 impl Component for ComponentType {
     fn name(&self) -> String {
         match self {
-            ComponentType::Backlight(b) => b.name(),
+            ComponentType::Backlight(c) => c.name(),
+            ComponentType::Battery(c) => c.name(),
         }
     }
 
     fn update(&mut self) -> anyhow::Result<()> {
         match self {
-            ComponentType::Backlight(b) => b.update(),
+            ComponentType::Backlight(c) => c.update(),
+            ComponentType::Battery(c) => c.update(),
         }
     }
 
     fn get_format_str(&self) -> anyhow::Result<String> {
         match self {
-            ComponentType::Backlight(b) => b.get_format_str(),
+            ComponentType::Backlight(c) => c.get_format_str(),
+            ComponentType::Battery(c) => c.get_format_str(),
         }
     }
 
     fn format(&self) -> anyhow::Result<String> {
         match self {
-            ComponentType::Backlight(b) => b.format(),
+            ComponentType::Backlight(c) => c.format(),
+            ComponentType::Battery(c) => c.format(),
         }
     }
 }
@@ -84,6 +91,7 @@ impl<'de> Deserialize<'de> for ComponentVec {
 
 fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::Error> {
     let name = name.to_lowercase();
+    // TODO: search through all componentTypes and match based on name
     match name.as_str() {
         "backlight" => {
             let settings: BacklightSettings =
@@ -93,6 +101,15 @@ fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::
                 ..Backlight::default()
             };
             Ok(ComponentType::Backlight(res))
+        }
+        "battery" => {
+            let settings: BatterySettings =
+                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
+            let res: Battery = Battery {
+                settings,
+                ..Battery::default()
+            };
+            Ok(ComponentType::Battery(res))
         }
         // "time" => {
         //     let settings: TimeSettings

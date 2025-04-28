@@ -3,7 +3,6 @@ use std::{collections::HashMap, fs, path::PathBuf, time};
 use itertools::Itertools;
 use serde::Deserialize;
 use smart_default::SmartDefault;
-use strfmt::strfmt;
 
 use super::Component;
 
@@ -47,22 +46,20 @@ impl Component for Backlight {
                 .sorted_by(|a, b| a.0.cmp(&b.0))
                 .find(|(ceiling, _)| perc <= ceiling)
                 .map(|(_, format_str)| format_str.clone())
-                .unwrap_or_else(|| "(N/A: could not find level)".to_owned())
+                .unwrap_or_else(|| "(N/A: could not find level)".to_owned()),
         };
         Ok(res)
     }
 
     fn format(&self) -> anyhow::Result<String> {
         let format_string = self.get_format_str()?;
-        let vars: HashMap<String, String> = HashMap::from([(
-            "p".to_owned(),
-            match self.state.percent {
+        let vars: HashMap<String, String> = HashMap::from([
+            ("p".to_owned(), match self.state.percent {
                 Some(v) => v.to_string(),
                 None => "N/A".to_string(),
-            },
-        )]);
-        let res = strfmt(&format_string, &vars)?;
-        Ok(res)
+            }),
+        ]);
+        Ok(strfmt::strfmt(&format_string, &vars)?)
     }
 }
 
@@ -97,4 +94,3 @@ pub struct BacklightFormatSettings {
     #[default(None)]
     pub levels: Option<Vec<(i32, String)>>,
 }
-
