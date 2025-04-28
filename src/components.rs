@@ -19,33 +19,37 @@ pub enum ComponentType {
     // Time(Time),
 }
 
+pub trait Component: Debug {
+    fn name(&self) -> String;
+    fn update(&mut self) -> anyhow::Result<()>;
+    fn get_format_str(&self) -> anyhow::Result<String>;
+    fn format(&self) -> anyhow::Result<String>;
+}
+
+macro_rules! call_method_on_component_type {
+    ($self:expr, $method:ident) => {
+        match $self {
+            ComponentType::Backlight(c) => c.$method(),
+            ComponentType::Battery(c) => c.$method(),
+        }
+    };
+}
+
 impl Component for ComponentType {
     fn name(&self) -> String {
-        match self {
-            ComponentType::Backlight(c) => c.name(),
-            ComponentType::Battery(c) => c.name(),
-        }
+        call_method_on_component_type!(self, name)
     }
 
     fn update(&mut self) -> anyhow::Result<()> {
-        match self {
-            ComponentType::Backlight(c) => c.update(),
-            ComponentType::Battery(c) => c.update(),
-        }
+        call_method_on_component_type!(self, update)
     }
 
     fn get_format_str(&self) -> anyhow::Result<String> {
-        match self {
-            ComponentType::Backlight(c) => c.get_format_str(),
-            ComponentType::Battery(c) => c.get_format_str(),
-        }
+        call_method_on_component_type!(self, get_format_str)
     }
 
     fn format(&self) -> anyhow::Result<String> {
-        match self {
-            ComponentType::Backlight(c) => c.format(),
-            ComponentType::Battery(c) => c.format(),
-        }
+        call_method_on_component_type!(self, format)
     }
 }
 
@@ -94,22 +98,18 @@ fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::
     // TODO: search through all componentTypes and match based on name
     match name.as_str() {
         "backlight" => {
-            let settings: BacklightSettings =
-                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
-            let res: Backlight = Backlight {
-                settings,
-                ..Backlight::default()
-            };
-            Ok(ComponentType::Backlight(res))
+            let settings: BacklightSettings = serde_yml::from_value(value.clone())
+                .context("failed to parse {name} config")?;
+            Ok(ComponentType::Backlight(
+                Backlight { settings, ..Default::default() }
+            ))
         }
         "battery" => {
-            let settings: BatterySettings =
-                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
-            let res: Battery = Battery {
-                settings,
-                ..Battery::default()
-            };
-            Ok(ComponentType::Battery(res))
+            let settings: BatterySettings = serde_yml::from_value(value.clone())
+                .context("failed to parse {name} config")?;
+            Ok(ComponentType::Battery(
+                Battery { settings, ..Default::default() }
+            ))
         }
         // "time" => {
         //     let settings: TimeSettings
@@ -120,9 +120,3 @@ fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::
     }
 }
 
-pub trait Component: Debug {
-    fn name(&self) -> String;
-    fn update(&mut self) -> anyhow::Result<()>;
-    fn get_format_str(&self) -> anyhow::Result<String>;
-    fn format(&self) -> anyhow::Result<String>;
-}
