@@ -113,7 +113,7 @@ impl Component for Battery {
     }
 
     fn format(&self) -> anyhow::Result<String> {
-        let format_string = self.get_format_str()?;
+        let format_string = &self.get_format_str()?;
         let vars: HashMap<String, String> = HashMap::from([
             ("p".to_owned(), match &self.state.battery_info {
                 Some(b) => (b.percentage.round() as i32).to_string(),
@@ -129,6 +129,6 @@ impl Component for Battery {
                 }
             }),
         ]);
-        Ok(strfmt::strfmt(&format_string, &vars)?)
+        Ok(strfmt::strfmt(format_string, &vars)?)
     }
 }

@@ -32,12 +32,12 @@ components:
         default: " ? {p}% {t} "
 
 
-  # - Time:
-  #     refresh_interval: 500
-  #     signal: 8
+  - Time:
+      refresh_interval: 500
+      signal: 8
 
-  #     time: "%a %d %b %I:%M %P"
+      time: "%a %d %b %I:%M %P"
 
-  #     format:
-  #       default: " {t} "
-        
+      format:
+        default: " {t} "
+

@@ -1,5 +1,6 @@
 mod backlight;
 mod battery;
+mod time;
 
 use std::{collections::HashMap, fmt::Debug};
 
@@ -9,6 +10,7 @@ use battery::{Battery, BatterySettings};
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
+use time::{Time, TimeSettings};
 
 // ComponentType //////////////////////////////////////////////////////////////
 
@@ -16,7 +18,7 @@ use smart_default::SmartDefault;
 pub enum ComponentType {
     Backlight(Backlight),
     Battery(Battery),
-    // Time(Time),
+    Time(Time),
 }
 
 pub trait Component: Debug {
@@ -31,6 +33,7 @@ macro_rules! call_method_on_component_type {
         match $self {
             ComponentType::Backlight(c) => c.$method(),
             ComponentType::Battery(c) => c.$method(),
+            ComponentType::Time(c) => c.$method(),
         }
     };
 }
@@ -112,9 +115,13 @@ fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::
                 Battery { settings, ..Default::default() }
             ))
         }
-        // "time" => {
-        //     let settings: TimeSettings
-        // },
+        "time" => {
+            let settings: TimeSettings = serde_yml::from_value(value.clone())
+                .context("failed to parse {name} config")?;
+            Ok(ComponentType::Time(
+                Time { settings, ..Default::default() }
+            ))
+        },
         _ => {
             anyhow::bail!("unknown component: {}", name);
         }
