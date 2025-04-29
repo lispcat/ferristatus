@@ -18,7 +18,6 @@ pub struct Battery {
     pub settings: BatterySettings,
 }
 
-
 #[derive(Debug, SmartDefault)]
 pub struct BatteryState {
     pub battery_info: Option<BatteryInfo>,
@@ -75,8 +74,8 @@ impl Component for Battery {
 
     fn update(&mut self) -> anyhow::Result<()> {
         let path = &self.settings.path;
-        let battery_info = BatteryInfo::new(path)
-            .context("failed to create new BatteryInfo instance")?;
+        let battery_info =
+            BatteryInfo::new(path).context("failed to create new BatteryInfo instance")?;
 
         self.state.battery_info = Some(battery_info);
         self.state.last_updated = Some(time::Instant::now());
@@ -87,7 +86,7 @@ impl Component for Battery {
         let format_settings = &self.settings.format;
         let battery_info = match &self.state.battery_info {
             Some(b) => b,
-            None => anyhow::bail!("failed to get battery_info")
+            None => anyhow::bail!("failed to get battery_info"),
         };
 
         match battery_info.state {

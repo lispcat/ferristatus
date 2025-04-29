@@ -1,9 +1,11 @@
+mod alsa;
 mod backlight;
 mod battery;
 mod time;
 
 use std::{collections::HashMap, fmt::Debug};
 
+use alsa::{Alsa, AlsaSettings};
 use anyhow::Context;
 use backlight::{Backlight, BacklightSettings};
 use battery::{Battery, BatterySettings};
@@ -19,6 +21,7 @@ pub enum ComponentType {
     Backlight(Backlight),
     Battery(Battery),
     Time(Time),
+    Alsa(Alsa),
 }
 
 pub trait Component: Debug {
@@ -34,6 +37,7 @@ macro_rules! call_method_on_component_type {
             ComponentType::Backlight(c) => c.$method(),
             ComponentType::Battery(c) => c.$method(),
             ComponentType::Time(c) => c.$method(),
+            ComponentType::Alsa(c) => c.$method(),
         }
     };
 }
@@ -102,29 +106,39 @@ fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::
     // TODO: search through all componentTypes and match based on name
     match name.as_str() {
         "backlight" => {
-            let settings: BacklightSettings = serde_yml::from_value(value.clone())
-                .context("failed to parse {name} config")?;
-            Ok(ComponentType::Backlight(
-                Backlight { settings, ..Default::default() }
-            ))
+            let settings: BacklightSettings =
+                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
+            Ok(ComponentType::Backlight(Backlight {
+                settings,
+                ..Default::default()
+            }))
         }
         "battery" => {
-            let settings: BatterySettings = serde_yml::from_value(value.clone())
-                .context("failed to parse {name} config")?;
-            Ok(ComponentType::Battery(
-                Battery { settings, ..Default::default() }
-            ))
+            let settings: BatterySettings =
+                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
+            Ok(ComponentType::Battery(Battery {
+                settings,
+                ..Default::default()
+            }))
         }
         "time" => {
-            let settings: TimeSettings = serde_yml::from_value(value.clone())
-                .context("failed to parse {name} config")?;
-            Ok(ComponentType::Time(
-                Time { settings, ..Default::default() }
-            ))
-        },
+            let settings: TimeSettings =
+                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
+            Ok(ComponentType::Time(Time {
+                settings,
+                ..Default::default()
+            }))
+        }
+        "alsa" => {
+            let settings: AlsaSettings =
+                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
+            Ok(ComponentType::Alsa(Alsa {
+                settings,
+                ..Default::default()
+            }))
+        }
         _ => {
             anyhow::bail!("unknown component: {}", name);
         }
     }
 }
-

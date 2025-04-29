@@ -59,14 +59,13 @@ impl Component for Time {
     fn format(&self) -> anyhow::Result<String> {
         let format_string = &self.get_format_str()?;
         let time_fmt = &self.settings.time;
-        let vars: HashMap<String, String> = HashMap::from([
-            ("t".to_owned(), match self.state.now {
-                Some(datetime) => {
-                    datetime.format(time_fmt.as_str()).to_string()
-                },
-                None => "N/A".to_string()
-            })
-        ]);
+        let vars: HashMap<String, String> = HashMap::from([(
+            "t".to_owned(),
+            match self.state.now {
+                Some(datetime) => datetime.format(time_fmt.as_str()).to_string(),
+                None => "N/A".to_string(),
+            },
+        )]);
         Ok(strfmt::strfmt(format_string, &vars)?)
     }
 }

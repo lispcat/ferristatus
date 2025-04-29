@@ -31,7 +31,6 @@ components:
         not_charging: " ? {p}% {t} "
         default: " ? {p}% {t} "
 
-
   - Time:
       refresh_interval: 500
       signal: 8
@@ -40,4 +39,6 @@ components:
 
       format:
         default: " {t} "
+
+  - Alsa:
 

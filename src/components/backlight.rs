@@ -72,21 +72,16 @@ impl Component for Backlight {
 
         match (percent, levels) {
             // percent is None
-            (None, _) => Ok(
-                "(N/A)".to_owned()
-            ),
+            (None, _) => Ok("(N/A)".to_owned()),
             // levels is None, use default formatter
-            (Some(_), None) => Ok(
-                self.settings.format.default.clone()
-            ),
+            (Some(_), None) => Ok(self.settings.format.default.clone()),
             // levels is Some
-            (Some(perc), Some(lvls)) => Ok(
-                lvls.iter()
-                    .sorted_by(|a, b| a.0.cmp(&b.0))
-                    .find(|(ceiling, _)| perc <= ceiling)
-                    .map(|(_, format_str)| format_str.clone())
-                    .unwrap_or("(N/A: could not find level)".to_owned())
-            ),
+            (Some(perc), Some(lvls)) => Ok(lvls
+                .iter()
+                .sorted_by(|a, b| a.0.cmp(&b.0))
+                .find(|(ceiling, _)| perc <= ceiling)
+                .map(|(_, format_str)| format_str.clone())
+                .unwrap_or("(N/A: could not find level)".to_owned())),
         }
     }
 
@@ -96,7 +91,7 @@ impl Component for Backlight {
             ("p".to_owned(), match self.state.percent {
                 Some(v) => v.to_string(),
                 None => "N/A".to_string(),
-            }),
+            })
         ]);
         Ok(strfmt::strfmt(format_string, &vars)?)
     }
