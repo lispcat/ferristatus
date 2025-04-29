@@ -5,20 +5,31 @@ settings:
 
 components:
 
-  - Backlight:
+  - Alsa:
       refresh_interval: 500
       signal: 6
+
+      format:
+        default: " ? {p}% "
+        levels:
+          - [100, "  {p}% "]
+          - [40,  "  {p}% "]
+          - [10,  "  {p}% "]
+        muted: " MUTE({p}) "
+
+  - Backlight:
+      refresh_interval: 500
+      signal: 7
 
       path: "/sys/class/backlight/acpi_video0"
 
       format:
         default: "  {p} "
-        levels:
-          - [100, " A {p} "]
-          - [50 , " B {p} "]
-          - [25 , " C {p} "]
 
   - Battery:
+      refresh_interval: 500
+      signal: 8
+
       format:
         full: " Full({p}) "
         charging: "  {p}% {t} "
@@ -33,12 +44,10 @@ components:
 
   - Time:
       refresh_interval: 500
-      signal: 8
+      signal: 9
 
       time: "%a %d %b %I:%M %P"
 
       format:
         default: " {t} "
-
-  - Alsa:
 
