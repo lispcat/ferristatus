@@ -1,0 +1,28 @@
+use serde::Deserialize;
+use smart_default::SmartDefault;
+
+use super::Component;
+
+// Text ///////////////////////////////////////////////////////////////////////
+
+#[derive(Debug, SmartDefault, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Text(String);
+
+impl Component for Text {
+    fn name(&self) -> String {
+        "text".to_string()
+    }
+
+    fn update(&mut self) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    fn get_format_str(&self) -> anyhow::Result<String> {
+        Ok(self.0.clone())
+    }
+
+    fn format(&self) -> anyhow::Result<String> {
+        self.get_format_str()
+    }
+}

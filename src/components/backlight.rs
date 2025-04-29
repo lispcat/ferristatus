@@ -87,12 +87,13 @@ impl Component for Backlight {
 
     fn format(&self) -> anyhow::Result<String> {
         let format_string = &self.get_format_str()?;
-        let vars: HashMap<String, String> = HashMap::from([
-            ("p".to_owned(), match self.state.percent {
+        let vars: HashMap<String, String> = HashMap::from([(
+            "p".to_owned(),
+            match self.state.percent {
                 Some(v) => v.to_string(),
                 None => "N/A".to_string(),
-            })
-        ]);
+            },
+        )]);
         Ok(strfmt::strfmt(format_string, &vars)?)
     }
 }

@@ -24,7 +24,6 @@ pub struct BatteryState {
     pub last_updated: Option<time::Instant>,
 }
 
-/// Settings for the Battery component.
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BatterySettings {
@@ -107,20 +106,26 @@ impl Component for Battery {
     fn format(&self) -> anyhow::Result<String> {
         let format_string = &self.get_format_str()?;
         let vars: HashMap<String, String> = HashMap::from([
-            ("p".to_owned(), match &self.state.battery_info {
-                Some(b) => (b.percentage.round() as i32).to_string(),
-                None => "N/A".to_string(),
-            }),
-            ("t".to_owned(), match &self.state.battery_info {
-                None => "N/A".to_string(),
-                Some(b) => {
-                    let duration = b.time_remaining;
-                    let time = &humantime::format_duration(duration).to_string();
-                    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s[0-9]+s$")
-                        .expect("could not build regex"));
-                    RE.replace(time, "").to_string()
-                }
-            }),
+            (
+                "p".to_owned(),
+                match &self.state.battery_info {
+                    Some(b) => (b.percentage.round() as i32).to_string(),
+                    None => "N/A".to_string(),
+                },
+            ),
+            (
+                "t".to_owned(),
+                match &self.state.battery_info {
+                    None => "N/A".to_string(),
+                    Some(b) => {
+                        let duration = b.time_remaining;
+                        let time = &humantime::format_duration(duration).to_string();
+                        static RE: Lazy<Regex> =
+                            Lazy::new(|| Regex::new(r"\s[0-9]+s$").expect("could not build regex"));
+                        RE.replace(time, "").to_string()
+                    }
+                },
+            ),
         ]);
         Ok(strfmt::strfmt(format_string, &vars)?)
     }

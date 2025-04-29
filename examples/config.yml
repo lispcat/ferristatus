@@ -1,9 +1,11 @@
 settings:
 
   check_interval: 100
-  default_separator: "|"
+  default_separator: ""
 
 components:
+
+  - text: "all status "
 
   - Alsa:
       refresh_interval: 500
@@ -17,6 +19,8 @@ components:
           - [10,  "  {p}% "]
         muted: " MUTE({p}) "
 
+  - text: "|"
+
   - Backlight:
       refresh_interval: 500
       signal: 7
@@ -25,6 +29,8 @@ components:
 
       format:
         default: "  {p} "
+
+  - text: "|"
 
   - Battery:
       refresh_interval: 500
@@ -41,6 +47,8 @@ components:
           - [10,  "  {p}% {t} "]
         not_charging: " ? {p}% {t} "
         default: " ? {p}% {t} "
+
+  - text: "|"
 
   - Time:
       refresh_interval: 500

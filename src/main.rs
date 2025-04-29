@@ -23,12 +23,10 @@ mod tests {
 
     use crate::{args::Args, components::Component, config::Config};
 
-    
-
     #[test]
     fn main() -> anyhow::Result<()> {
         let args = Args {
-            config_path: "examples/config.new.yaml".into(),
+            config_path: "examples/config.yml".into(),
         };
 
         let mut config = match Config::new(&args) {

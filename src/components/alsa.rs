@@ -9,7 +9,7 @@ use itertools::Itertools;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use super::{Component};
+use super::Component;
 
 // Alsa ///////////////////////////////////////////////////////////////////////
 
@@ -59,8 +59,8 @@ impl Component for Alsa {
 
     fn update(&mut self) -> anyhow::Result<()> {
         // Open the default mixer
-        let mixer: Mixer = Mixer::new("default", false)
-            .context("failed to open the default mixer")?;
+        let mixer: Mixer =
+            Mixer::new("default", false).context("failed to open the default mixer")?;
 
         // Get the Master control
         let selem_id: SelemId = SelemId::new("Master", 0);
@@ -75,8 +75,7 @@ impl Component for Alsa {
         // Get current volume (first channel)
         let vol = selem
             .get_playback_volume(SelemChannelId::FrontLeft)
-            .context("failed to get playback volume from selem")?
-            as f64;
+            .context("failed to get playback volume from selem")? as f64;
         let vol_percent_f = (vol - min) / (max - min) * 100.0;
 
         // Get mute status
@@ -128,13 +127,13 @@ impl Component for Alsa {
 
     fn format(&self) -> anyhow::Result<String> {
         let format_string = &self.get_format_str()?;
-        let vars: HashMap<String, String> = HashMap::from([
-            ("p".to_owned(), match self.state.percent {
-                Some(v) => (v.round() as i64)
-                    .to_string(),
+        let vars: HashMap<String, String> = HashMap::from([(
+            "p".to_owned(),
+            match self.state.percent {
+                Some(v) => (v.round() as i64).to_string(),
                 None => "N/A".to_string(),
-            })
-        ]);
+            },
+        )]);
         Ok(strfmt::strfmt(format_string, &vars)?)
     }
 }

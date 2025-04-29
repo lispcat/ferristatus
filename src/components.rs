@@ -1,6 +1,7 @@
 mod alsa;
 mod backlight;
 mod battery;
+mod text;
 mod time;
 
 use std::{collections::HashMap, fmt::Debug};
@@ -12,6 +13,7 @@ use battery::{Battery, BatterySettings};
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
+use text::Text;
 use time::{Time, TimeSettings};
 
 // ComponentType //////////////////////////////////////////////////////////////
@@ -22,6 +24,7 @@ pub enum ComponentType {
     Battery(Battery),
     Time(Time),
     Alsa(Alsa),
+    Text(Text),
 }
 
 pub trait Component: Debug {
@@ -38,6 +41,7 @@ macro_rules! call_method_on_component_type {
             ComponentType::Battery(c) => c.$method(),
             ComponentType::Time(c) => c.$method(),
             ComponentType::Alsa(c) => c.$method(),
+            ComponentType::Text(c) => c.$method(),
         }
     };
 }
@@ -103,14 +107,14 @@ impl<'de> Deserialize<'de> for ComponentVec {
 
 macro_rules! de_settings_and_instantiate_component {
     ($component_type:ident, $component_settings:ident, $value:tt) => {{
-        let settings: $component_settings = serde_yml::from_value($value.clone())
-            .context("failed to parse {name} config")?;
-        Ok(ComponentType::$component_type(
-            $component_type { settings, ..Default::default() }
-        ))
+        let settings: $component_settings =
+            serde_yml::from_value($value.clone()).context("failed to parse {name} config")?;
+        Ok(ComponentType::$component_type($component_type {
+            settings,
+            ..Default::default()
+        }))
     }};
 }
-
 
 fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::Error> {
     let name = name.to_lowercase();
@@ -126,6 +130,11 @@ fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::
         }
         "alsa" => {
             de_settings_and_instantiate_component!(Alsa, AlsaSettings, value)
+        }
+        "text" => {
+            Ok(ComponentType::Text(
+                serde_yml::from_value::<Text>(value.clone()).context("failed to parse {name} config")?)
+            )
         }
         _ => {
             anyhow::bail!("unknown component: {}", name);
