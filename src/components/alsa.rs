@@ -42,7 +42,7 @@ pub struct AlsaSettings {
 #[derive(Debug, SmartDefault, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct AlsaFormatSettings {
-    #[default(" {p}% ")]
+    #[default(" A: {p}% ")]
     pub default: String,
 
     #[default(" MUTE({p}) ")]

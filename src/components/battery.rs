@@ -44,7 +44,7 @@ pub struct BatterySettings {
 #[derive(Debug, SmartDefault, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BatteryFormatSettings {
-    #[default(" {p}% {t} ")]
+    #[default(" B: {p}% {t} ")]
     pub default: String,
 
     #[default(" Full({p}) ".to_string())]
@@ -56,14 +56,7 @@ pub struct BatteryFormatSettings {
     #[default("  {p}% {t} ".to_string())]
     pub charging: String,
 
-    #[default(Some(vec![
-        (100, " Full({p}) ".to_string()),
-        (99,  "  {p}% {t} ".to_string()),
-        (70,  "  {p}% {t} ".to_string()),
-        (50,  "  {p}% {t} ".to_string()),
-        (30,  "  {p}% {t} ".to_string()),
-        (10,  "  {p}% {t} ".to_string()),
-    ]))]
+    #[default(None)]
     pub discharging: Option<Vec<(i32, String)>>,
 }
 
@@ -123,7 +116,8 @@ impl Component for Battery {
                 Some(b) => {
                     let duration = b.time_remaining;
                     let time = &humantime::format_duration(duration).to_string();
-                    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s[0-9]+s$").unwrap());
+                    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s[0-9]+s$")
+                        .expect("could not build regex"));
                     RE.replace(time, "").to_string()
                 }
             }),
