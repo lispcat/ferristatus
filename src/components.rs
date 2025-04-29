@@ -107,25 +107,21 @@ macro_rules! de_settings_and_instantiate_component {
 fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::Error> {
     let name = name.to_lowercase();
     match name.as_str() {
-        "backlight" => {
-            de_settings_and_instantiate_component!(Backlight, BacklightSettings, value)
-        }
-        "battery" => {
-            de_settings_and_instantiate_component!(Battery, BatterySettings, value)
-        }
-        "time" => {
-            de_settings_and_instantiate_component!(Time, TimeSettings, value)
-        }
-        "alsa" => {
-            de_settings_and_instantiate_component!(Alsa, AlsaSettings, value)
-        }
-        "text" => {
-            Ok(ComponentType::Text(
-                serde_yml::from_value::<Text>(value.clone()).context("failed to parse {name} config")?)
-            )
-        }
-        _ => {
-            anyhow::bail!("unknown component: {}", name);
-        }
+        "backlight" => de_settings_and_instantiate_component!(
+            Backlight, BacklightSettings, value
+        ),
+        "battery" => de_settings_and_instantiate_component!(
+            Battery, BatterySettings, value
+        ),
+        "time" => de_settings_and_instantiate_component!(
+            Time, TimeSettings, value
+        ),
+        "alsa" => de_settings_and_instantiate_component!(
+            Alsa, AlsaSettings, value
+        ),
+        "text" => Ok(ComponentType::Text(
+            serde_yml::from_value::<Text>(value.clone())
+                .context("failed to parse {name} config")?)),
+        _ => anyhow::bail!("unknown component: {}", name),
     }
 }
