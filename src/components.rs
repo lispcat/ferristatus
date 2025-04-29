@@ -101,41 +101,31 @@ impl<'de> Deserialize<'de> for ComponentVec {
     }
 }
 
+macro_rules! de_settings_and_instantiate_component {
+    ($component_type:ident, $component_settings:ident, $value:tt) => {{
+        let settings: $component_settings = serde_yml::from_value($value.clone())
+            .context("failed to parse {name} config")?;
+        Ok(ComponentType::$component_type(
+            $component_type { settings, ..Default::default() }
+        ))
+    }};
+}
+
+
 fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::Error> {
     let name = name.to_lowercase();
-    // TODO: search through all componentTypes and match based on name
     match name.as_str() {
         "backlight" => {
-            let settings: BacklightSettings =
-                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
-            Ok(ComponentType::Backlight(Backlight {
-                settings,
-                ..Default::default()
-            }))
+            de_settings_and_instantiate_component!(Backlight, BacklightSettings, value)
         }
         "battery" => {
-            let settings: BatterySettings =
-                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
-            Ok(ComponentType::Battery(Battery {
-                settings,
-                ..Default::default()
-            }))
+            de_settings_and_instantiate_component!(Battery, BatterySettings, value)
         }
         "time" => {
-            let settings: TimeSettings =
-                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
-            Ok(ComponentType::Time(Time {
-                settings,
-                ..Default::default()
-            }))
+            de_settings_and_instantiate_component!(Time, TimeSettings, value)
         }
         "alsa" => {
-            let settings: AlsaSettings =
-                serde_yml::from_value(value.clone()).context("failed to parse {name} config")?;
-            Ok(ComponentType::Alsa(Alsa {
-                settings,
-                ..Default::default()
-            }))
+            de_settings_and_instantiate_component!(Alsa, AlsaSettings, value)
         }
         _ => {
             anyhow::bail!("unknown component: {}", name);
