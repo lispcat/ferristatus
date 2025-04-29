@@ -10,6 +10,7 @@ use alsa::{Alsa, AlsaSettings};
 use anyhow::Context;
 use backlight::{Backlight, BacklightSettings};
 use battery::{Battery, BatterySettings};
+use delegate::delegate;
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
@@ -34,33 +35,20 @@ pub trait Component: Debug {
     fn format(&self) -> anyhow::Result<String>;
 }
 
-macro_rules! call_method_on_component_type {
-    ($self:expr, $method:ident) => {
-        match $self {
-            ComponentType::Backlight(c) => c.$method(),
-            ComponentType::Battery(c) => c.$method(),
-            ComponentType::Time(c) => c.$method(),
-            ComponentType::Alsa(c) => c.$method(),
-            ComponentType::Text(c) => c.$method(),
-        }
-    };
-}
-
 impl Component for ComponentType {
-    fn name(&self) -> String {
-        call_method_on_component_type!(self, name)
-    }
-
-    fn update(&mut self) -> anyhow::Result<()> {
-        call_method_on_component_type!(self, update)
-    }
-
-    fn get_format_str(&self) -> anyhow::Result<String> {
-        call_method_on_component_type!(self, get_format_str)
-    }
-
-    fn format(&self) -> anyhow::Result<String> {
-        call_method_on_component_type!(self, format)
+    delegate! {
+        to match self {
+            Self::Backlight(c) => c,
+            Self::Battery(c) => c,
+            Self::Time(c) => c,
+            Self::Alsa(c) => c,
+            Self::Text(c) => c,
+        } {
+            fn name(&self) -> String;
+            fn update(&mut self) -> anyhow::Result<()>;
+            fn get_format_str(&self) -> anyhow::Result<String>;
+            fn format(&self) -> anyhow::Result<String>;
+        }
     }
 }
 
