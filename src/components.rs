@@ -10,7 +10,7 @@ use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
 
-// ComponentType
+// ComponentType //////////////////////////////////////////////////////////////
 
 #[derive(Debug)]
 pub enum ComponentType {
@@ -53,7 +53,7 @@ impl Component for ComponentType {
     }
 }
 
-// ComponentVec
+// ComponentVec ///////////////////////////////////////////////////////////////
 
 #[derive(SmartDefault, Debug)]
 pub struct ComponentVec {
@@ -69,6 +69,7 @@ impl<'de> Deserialize<'de> for ComponentVec {
         // Deserialize into a vec of length-one hashmaps first
         let components_raw: Vec<HashMap<String, Value>> = Vec::deserialize(deserializer)?;
 
+        // flatten into a vec of tuples
         let components_flattened: Vec<(String, Value)> = components_raw
             .into_iter()
             .flat_map(|map| map.into_iter())
