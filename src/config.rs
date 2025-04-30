@@ -16,7 +16,7 @@ pub fn default_config_path() -> PathBuf {
                 .expect("Cannot find HOME directory")
         });
 
-    config_dir.join("ferristatus").join("config.json")
+    config_dir.join("ferristatus").join("config.yml")
 }
 
 #[derive(SmartDefault, Debug, Deserialize)]

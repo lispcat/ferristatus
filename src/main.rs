@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
 
     // load config
     let mut config = Config::new(&args)
-        .map_err(|e| anyhow::anyhow!("crocdile crocodale -- {e}"))?;
+        .context("failed to create config")?;
 
     // run
     loop {
@@ -41,6 +41,8 @@ fn main() -> anyhow::Result<()> {
 mod tests {
     use std::{thread, time::Duration};
 
+    use anyhow::Context;
+
     use crate::{args::Args, components::Component, config::Config};
 
     #[test]
@@ -50,7 +52,7 @@ mod tests {
         };
 
         let mut config = Config::new(&args)
-            .map_err(|e| anyhow::anyhow!("crocdile crocodale -- {e}"))?;
+            .context("failed to create config")?;
 
         for _ in 0..10 {
             println!(
