@@ -30,6 +30,18 @@ pub enum ComponentType {
 
 pub trait Component: Debug {
     fn name(&self) -> String;
+    fn get_refresh_interval(&self) -> u32;
+    fn get_last_updated(&self) -> Option<std::time::Instant>;
+    fn update_check(&self) -> anyhow::Result<bool> {
+        let last_updated = self.get_last_updated();
+        let interval = std::time::Duration::from_millis(
+            self.get_refresh_interval().into()
+        );
+        match last_updated {
+            Some(i) => Ok(i.elapsed() > interval),
+            None => Ok(true),
+        }
+    }
     fn update(&mut self) -> anyhow::Result<()>;
     fn get_format_str(&self) -> anyhow::Result<String>;
     fn format(&self) -> anyhow::Result<String>;
@@ -45,6 +57,9 @@ impl Component for ComponentType {
             Self::Text(c) => c,
         } {
             fn name(&self) -> String;
+            fn get_refresh_interval(&self) -> u32;
+            fn get_last_updated(&self) -> Option<std::time::Instant>;
+            fn update_check(&self) -> anyhow::Result<bool>;
             fn update(&mut self) -> anyhow::Result<()>;
             fn get_format_str(&self) -> anyhow::Result<String>;
             fn format(&self) -> anyhow::Result<String>;

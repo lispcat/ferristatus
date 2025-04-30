@@ -64,6 +64,14 @@ impl Component for Battery {
         "battery".to_owned()
     }
 
+    fn get_refresh_interval(&self) -> u32 {
+        self.settings.refresh_interval
+    }
+
+    fn get_last_updated(&self) -> Option<std::time::Instant> {
+        self.state.last_updated
+    }
+
     fn update(&mut self) -> anyhow::Result<()> {
         let path = &self.settings.path;
         let battery_info =

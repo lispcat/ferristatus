@@ -14,6 +14,14 @@ impl Component for Text {
         "text".to_string()
     }
 
+    fn get_refresh_interval(&self) -> u32 {
+        0
+    }
+
+    fn get_last_updated(&self) -> Option<std::time::Instant> {
+        None
+    }
+
     fn update(&mut self) -> anyhow::Result<()> {
         Ok(())
     }

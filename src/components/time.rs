@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time};
 
 use chrono::{DateTime, Local};
 use serde::Deserialize;
@@ -17,6 +17,8 @@ pub struct Time {
 #[derive(Debug, SmartDefault)]
 pub struct TimeState {
     pub now: Option<DateTime<Local>>,
+
+    pub last_updated: Option<time::Instant>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -45,6 +47,14 @@ pub struct TimeFormatSettings {
 impl Component for Time {
     fn name(&self) -> String {
         "time".to_owned()
+    }
+
+    fn get_refresh_interval(&self) -> u32 {
+        self.settings.refresh_interval
+    }
+
+    fn get_last_updated(&self) -> Option<std::time::Instant> {
+        self.state.last_updated
     }
 
     fn update(&mut self) -> anyhow::Result<()> {
