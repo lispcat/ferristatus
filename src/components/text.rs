@@ -30,7 +30,15 @@ impl Component for Text {
         Ok(self.0.clone())
     }
 
-    fn format(&self) -> anyhow::Result<String> {
+    fn format(&mut self) -> anyhow::Result<String> {
         self.get_format_str()
+    }
+
+    fn update_format_cache(&mut self, _str: &String) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    fn get_format_cache(&self) -> anyhow::Result<Option<String>> {
+        Ok(None)
     }
 }

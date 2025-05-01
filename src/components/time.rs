@@ -17,8 +17,8 @@ pub struct Time {
 #[derive(Debug, SmartDefault)]
 pub struct TimeState {
     pub now: Option<DateTime<Local>>,
-
     pub last_updated: Option<time::Instant>,
+    pub format_cache: Option<String>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -66,7 +66,7 @@ impl Component for Time {
         Ok(self.settings.format.default.clone())
     }
 
-    fn format(&self) -> anyhow::Result<String> {
+    fn format(&mut self) -> anyhow::Result<String> {
         let format_string = &self.get_format_str()?;
         let time_fmt = &self.settings.time;
         let vars: HashMap<String, String> = HashMap::from([(
@@ -76,6 +76,17 @@ impl Component for Time {
                 None => "N/A".to_string(),
             },
         )]);
-        Ok(strfmt::strfmt(format_string, &vars)?)
+        let res = strfmt::strfmt(format_string, &vars)?;
+        self.update_format_cache(&res)?;
+        Ok(res)
+    }
+
+    fn update_format_cache(&mut self, str: &String) -> anyhow::Result<()> {
+        self.state.format_cache = Some(str.clone());
+        Ok(())
+    }
+
+    fn get_format_cache(&self) -> anyhow::Result<Option<String>> {
+        Ok(self.state.format_cache.clone())
     }
 }

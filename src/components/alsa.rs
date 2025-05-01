@@ -24,6 +24,7 @@ pub struct AlsaState {
     pub percent: Option<f64>,
     pub is_muted: Option<bool>,
     pub last_updated: Option<time::Instant>,
+    pub format_cache: Option<String>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -133,7 +134,7 @@ impl Component for Alsa {
         }
     }
 
-    fn format(&self) -> anyhow::Result<String> {
+    fn format(&mut self) -> anyhow::Result<String> {
         let format_string = &self.get_format_str()?;
         let vars: HashMap<String, String> = HashMap::from([(
             "p".to_owned(),
@@ -142,6 +143,17 @@ impl Component for Alsa {
                 None => "N/A".to_string(),
             },
         )]);
-        Ok(strfmt::strfmt(format_string, &vars)?)
+        let res = strfmt::strfmt(format_string, &vars)?;
+        self.update_format_cache(&res)?;
+        Ok(res)
+    }
+
+    fn update_format_cache(&mut self, str: &String) -> anyhow::Result<()> {
+        self.state.format_cache = Some(str.clone());
+        Ok(())
+    }
+
+    fn get_format_cache(&self) -> anyhow::Result<Option<String>> {
+        Ok(self.state.format_cache.clone())
     }
 }

@@ -15,19 +15,25 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     // load config
-    let mut config = Config::new(&args)
+    let config = Config::new(&args)
         .context("failed to create config")?;
 
     // run
+    let mut components = config.components.vec;
     loop {
         // update components
-        let val = config
-            .components
-            .vec
+        let val = components
             .iter_mut()
             .map(|c| -> anyhow::Result<String> {
-                c.update().context("component update failed")?;
-                c.format().context("failed to format")
+                if c.update_check()? {
+                    c.update().context("component update failed")?;
+                    c.format().context("failed to format")
+                } else {
+                    match c.get_format_cache().context("failed to get format cache")? {
+                        Some(s) => Ok(s),
+                        None => Err(anyhow::anyhow!("get_format_cache returned None")),
+                    }
+                }
             })
             .collect::<Result<Vec<String>, _>>()?
             .join(&config.settings.default_separator);
@@ -51,26 +57,33 @@ mod tests {
             config_path: "examples/config.yml".into(),
         };
 
-        let mut config = Config::new(&args)
+        let config = Config::new(&args)
             .context("failed to create config")?;
 
+        // run
+        let mut components = config.components.vec;
         for _ in 0..10 {
-            println!(
-                "Format:   {}",
-                config
-                    .components
-                    .vec
-                    .iter_mut()
-                    .map(|c| {
-                        c.update().expect("component update failed");
-                        c.format().expect("failed to format")
-                    })
-                    .collect::<Vec<String>>()
-                    .join(&config.settings.default_separator)
-            );
-            // TODO: make it only print when at least one component is actually updated
+            // update components
+            let val = components
+                .iter_mut()
+                .map(|c| -> anyhow::Result<String> {
+                    if c.update_check()? {
+                        c.update().context("component update failed")?;
+                        c.format().context("failed to format")
+                    } else {
+                        match c.get_format_cache().context("failed to get format cache")? {
+                            Some(s) => Ok(s),
+                            None => Err(anyhow::anyhow!("get_format_cache returned None")),
+                        }
+                    }
+                })
+                .collect::<Result<Vec<String>, _>>()?
+                .join(&config.settings.default_separator);
             thread::sleep(Duration::from_millis(config.settings.check_interval));
+
+            println!("{}", val);
         }
+
         Ok(())
     }
 }
