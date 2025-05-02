@@ -45,7 +45,7 @@ pub trait Component: Debug {
     fn update(&mut self) -> anyhow::Result<()>;
     fn get_format_str(&self) -> anyhow::Result<String>;
     fn format(&mut self) -> anyhow::Result<String>;
-    fn update_format_cache(&mut self, str: &String) -> anyhow::Result<()>;
+    fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()>;
     fn get_format_cache(&self) -> anyhow::Result<Option<String>>;
 }
 
@@ -65,7 +65,7 @@ impl Component for ComponentType {
             fn update(&mut self) -> anyhow::Result<()>;
             fn get_format_str(&self) -> anyhow::Result<String>;
             fn format(&mut self) -> anyhow::Result<String>;
-            fn update_format_cache(&mut self, str: &String) -> anyhow::Result<()>;
+            fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()>;
             fn get_format_cache(&self) -> anyhow::Result<Option<String>>;
         }
     }

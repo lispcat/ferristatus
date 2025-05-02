@@ -34,7 +34,7 @@ impl Component for Text {
         self.get_format_str()
     }
 
-    fn update_format_cache(&mut self, _str: &String) -> anyhow::Result<()> {
+    fn update_format_cache(&mut self, _str: &str) -> anyhow::Result<()> {
         Ok(())
     }
 

@@ -108,8 +108,8 @@ impl Component for Backlight {
         Ok(res)
     }
 
-    fn update_format_cache(&mut self, str: &String) -> anyhow::Result<()> {
-        self.state.format_cache = Some(str.clone());
+    fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()> {
+        self.state.format_cache = Some(str.to_string());
         Ok(())
     }
 
