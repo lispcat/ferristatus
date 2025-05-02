@@ -1,6 +1,6 @@
 settings:
 
-  check_interval: 100
+  check_interval: 500
   default_separator: ""
 
 components:
@@ -33,7 +33,7 @@ components:
   - text: "|"
 
   - Battery:
-      refresh_interval: 500
+      refresh_interval: 2000
       signal: 8
 
       format:
