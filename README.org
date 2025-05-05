@@ -3,3 +3,30 @@
 * Overview
 
 This is a minimal status bar printer inspired by dwmblocks and slstatus, written in Rust.
+
+* Notes
+may need to impl ComponentSettings and ComponentFormat to simplify...
+
++ trait Component: Display
+  - new_from_settings -> [Self, Err]
+  - update_check -> [bool, Err]
+  - update_cache -> [_, Err]
+  - update_maybe <G> -> [bool, Err]
+    if (update_check)
+    then (update_cache); 't
+    else 'nil
+  - display -> impl
+    self.state.get_cache
+
++ trait ComponentSettings: Deserialize
+  - get_refresh_interval
+
++ trait ComponentState:
+  - get_last_updated
+  - get_cache
+
++ 'de Components
+  - map each key/value...
+    - match key as str, component name =>
+      - deserialize, instantiate Component from settings (new_from_settings).
+  - collect
