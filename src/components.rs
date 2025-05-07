@@ -18,7 +18,6 @@ use smart_default::SmartDefault;
 // trait Component ////////////////////////////////////////////////////////////
 
 pub trait Component: Debug {
-    fn name(&self) -> String;
     fn new_from_value(value: &Value) -> anyhow::Result<Self>
     where
         Self: std::marker::Sized;
@@ -26,14 +25,17 @@ pub trait Component: Debug {
     fn update_state(&mut self) -> anyhow::Result<()>;
     fn set_cache(&mut self, str: String) -> anyhow::Result<()>;
     fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>>;
-    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<String>;
+    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>>;
     fn update(&mut self) -> anyhow::Result<()> {
         self.update_state().context("failed to update state for component")?;
 
         let template: Option<&str> = self.get_strfmt_template()?;
 
         let output = match template {
-            Some(t) => self.apply_strfmt_template(t)?,
+            Some(t) => self.apply_strfmt_template(t)?
+                .context(
+                    "if get_strfmt_template returns None, apply_strfmt_template should also return None"
+                )?,
             None => self.default_output()?.to_string(),
         };
 
@@ -63,9 +65,11 @@ pub trait Component: Debug {
             }
         }
     }
+
     fn get_last_updated(&self) -> anyhow::Result<&Option<std::time::Instant>>;
-    fn get_cache(&self) -> anyhow::Result<&Option<String>>;
     fn get_refresh_interval(&self) -> anyhow::Result<&u64>;
+    fn get_cache(&self) -> anyhow::Result<&Option<String>>;
+
     fn default_output(&self) -> anyhow::Result<&str>;
 }
 
@@ -91,14 +95,14 @@ pub struct ComponentVec {
 }
 
 macro_rules! create_component_from_name {
-    ( $name:expr, $value:expr, $( $module_name:literal => $module_type:ty ),+ $(,)? ) => {
+    ( $name:expr, $value:expr, $( $component_name:literal => $component_type:ty ),+ $(,)? ) => {
         match $name.to_lowercase().as_str() {
             $(
-                $module_name => Ok(Box::new(
-                    <$module_type>::new_from_value($value)?
+                $component_name => Ok(Box::new(
+                    <$component_type>::new_from_value($value)?
                 )),
             )+
-            _ => todo!(),
+            n => Err(anyhow::anyhow!("unknown component name: {}", n))
         }
     };
 }
