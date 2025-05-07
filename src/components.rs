@@ -1,82 +1,106 @@
-mod alsa;
 mod backlight;
-mod battery;
-mod text;
-mod time;
 
-use std::{collections::HashMap, fmt::Debug};
+use core::fmt;
+use std::{collections::HashMap, fmt::{Debug, Display}, time::{Duration, Instant}};
 
-use alsa::{Alsa, AlsaSettings};
 use anyhow::Context;
-use backlight::{Backlight, BacklightSettings};
-use battery::{Battery, BatterySettings};
-use delegate::delegate;
+use backlight::Backlight;
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
-use text::Text;
-use time::{Time, TimeSettings};
 
-// ComponentType //////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
-pub enum ComponentType {
-    Backlight(Backlight),
-    Battery(Battery),
-    Time(Time),
-    Alsa(Alsa),
-    Text(Text),
-}
+///////////////////////////////////////////////////////////////////////////////
+//                              Component Traits                             //
+///////////////////////////////////////////////////////////////////////////////
+
+
+// trait Component ////////////////////////////////////////////////////////////
 
 pub trait Component: Debug {
     fn name(&self) -> String;
-    fn get_refresh_interval(&self) -> u32;
-    fn get_last_updated(&self) -> Option<std::time::Instant>;
+    fn new_from_value(value: &Value) -> anyhow::Result<Self>
+    where
+        Self: std::marker::Sized;
+
+    fn update_state(&mut self) -> anyhow::Result<()>;
+    fn set_cache(&mut self, str: String) -> anyhow::Result<()>;
+    fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>>;
+    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<String>;
+    fn update(&mut self) -> anyhow::Result<()> {
+        self.update_state().context("failed to update state for component")?;
+
+        let template: Option<&str> = self.get_strfmt_template()?;
+
+        let output = match template {
+            Some(t) => self.apply_strfmt_template(t)?,
+            None => self.default_output()?.to_string(),
+        };
+
+        self.set_cache(output)?;
+
+        Ok(())
+    }
     fn update_check(&self) -> anyhow::Result<bool> {
-        let last_updated = self.get_last_updated();
-        let interval = std::time::Duration::from_millis(
-            self.get_refresh_interval().into()
+        let last_updated: &Instant = match self.get_last_updated()? {
+            Some(v) => v,
+            None => return Ok(true),
+        };
+        let interval = Duration::from_millis(
+            *self.get_refresh_interval()?
         );
-        match last_updated {
-            Some(i) => Ok(i.elapsed() > interval),
-            None => Ok(true),
+        let elapsed = last_updated.elapsed();
+        Ok(elapsed > interval)
+    }
+    fn update_maybe(&mut self) -> anyhow::Result<bool> {
+        match self.update_check()? {
+            true => {
+                self.update()?;
+                Ok(true)
+            },
+            false => {
+                Ok(false)
+            }
         }
     }
-    fn update(&mut self) -> anyhow::Result<()>;
-    fn get_format_str(&self) -> anyhow::Result<String>;
-    fn format(&mut self) -> anyhow::Result<String>;
-    fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()>;
-    fn get_format_cache(&self) -> anyhow::Result<Option<String>>;
+    fn get_last_updated(&self) -> anyhow::Result<&Option<std::time::Instant>>;
+    fn get_cache(&self) -> anyhow::Result<&Option<String>>;
+    fn get_refresh_interval(&self) -> anyhow::Result<&u64>;
+    fn default_output(&self) -> anyhow::Result<&str>;
 }
 
-impl Component for ComponentType {
-    delegate! {
-        to match self {
-            Self::Backlight(c) => c,
-            Self::Battery(c) => c,
-            Self::Time(c) => c,
-            Self::Alsa(c) => c,
-            Self::Text(c) => c,
-        } {
-            fn name(&self) -> String;
-            fn get_refresh_interval(&self) -> u32;
-            fn get_last_updated(&self) -> Option<std::time::Instant>;
-            fn update_check(&self) -> anyhow::Result<bool>;
-            fn update(&mut self) -> anyhow::Result<()>;
-            fn get_format_str(&self) -> anyhow::Result<String>;
-            fn format(&mut self) -> anyhow::Result<String>;
-            fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()>;
-            fn get_format_cache(&self) -> anyhow::Result<Option<String>>;
-        }
+impl Display for dyn Component {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let out = self.get_cache()
+            .expect("failed to get component cache")
+            .as_ref()
+            .map_or("N/A(no_cache_to_display)",  |v| v.as_str());
+        write!(f, "{}", out)
     }
 }
 
-// ComponentVec ///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//                                ComponentVec                               //
+///////////////////////////////////////////////////////////////////////////////
+
 
 #[derive(SmartDefault, Debug)]
 pub struct ComponentVec {
     #[default(Vec::new())]
-    pub vec: Vec<ComponentType>,
+    pub vec: Vec<Box<dyn Component>>,
+}
+
+macro_rules! create_component_from_name {
+    ( $name:expr, $value:expr, $( $module_name:literal => $module_type:ty ),+ $(,)? ) => {
+        match $name.to_lowercase().as_str() {
+            $(
+                $module_name => Ok(Box::new(
+                    <$module_type>::new_from_value($value)?
+                )),
+            )+
+            _ => todo!(),
+        }
+    };
 }
 
 impl<'de> Deserialize<'de> for ComponentVec {
@@ -94,53 +118,22 @@ impl<'de> Deserialize<'de> for ComponentVec {
             .collect();
 
         // Parse each component
-        let components_new: Vec<ComponentType> = components_flattened
-            .iter()
-            .map(|(component_name, settings)| {
-                component_create(component_name, settings).map_err(|e| {
-                    serde::de::Error::custom(format!(
-                        "could not parse component {}: {}",
-                        component_name, e
-                    ))
-                })
+        let components_new: Vec<Box<dyn Component>> = components_flattened.iter()
+            .map(|(name, value)| -> anyhow::Result<Box<dyn Component>> {
+                create_component_from_name!(
+                    name, value,
+                    "backlight" => Backlight,
+                )
             })
-            .collect::<Result<_, D::Error>>()?;
+            .collect::<Result<_, anyhow::Error>>()
+            .map_err(|e| {
+                serde::de::Error::custom(
+                    format!("could not parse settings for component: {}", e)
+                )
+            })?;
 
         Ok(ComponentVec {
             vec: components_new,
         })
-    }
-}
-
-macro_rules! de_settings_and_instantiate_component {
-    ($component_type:ident, $component_settings:ident, $value:tt) => {{
-        let settings: $component_settings =
-            serde_yml::from_value($value.clone()).context("failed to parse {name} config")?;
-        Ok(ComponentType::$component_type($component_type {
-            settings,
-            ..Default::default()
-        }))
-    }};
-}
-
-fn component_create(name: &str, value: &Value) -> Result<ComponentType, anyhow::Error> {
-    let name = name.to_lowercase();
-    match name.as_str() {
-        "backlight" => {
-            de_settings_and_instantiate_component!(Backlight, BacklightSettings, value)
-        }
-        "battery" => {
-            de_settings_and_instantiate_component!(Battery, BatterySettings, value)
-        }
-        "time" => {
-            de_settings_and_instantiate_component!(Time, TimeSettings, value)
-        }
-        "alsa" => {
-            de_settings_and_instantiate_component!(Alsa, AlsaSettings, value)
-        }
-        "text" => Ok(ComponentType::Text(
-            serde_yml::from_value::<Text>(value.clone())
-                .context("failed to parse {name} config")?)),
-        _ => anyhow::bail!("unknown component: {}", name),
     }
 }
