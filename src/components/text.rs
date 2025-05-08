@@ -7,38 +7,59 @@ use super::Component;
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct Text(String);
+pub struct Text(Option<String>);
 
 impl Component for Text {
-    fn name(&self) -> String {
-        "text".to_string()
+    fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
+    where
+        Self: std::marker::Sized {
+            {
+                let text: Text = crate::deserialize_value!(value);
+                Ok(text)
+            }
+        }
+
+    fn update_state(&mut self) -> anyhow::Result<()> {
+        anyhow::bail!("not applicable")
     }
 
-    fn get_refresh_interval(&self) -> u32 {
-        0
+    fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>> {
+        anyhow::bail!("not applicable")
     }
 
-    fn get_last_updated(&self) -> Option<std::time::Instant> {
-        None
+    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>> {
+        anyhow::bail!("not applicable")
+    }
+
+    fn set_cache(&mut self, str: String) -> anyhow::Result<()> {
+        anyhow::bail!("not applicable")
+    }
+
+    fn get_last_updated(&self) -> anyhow::Result<&Option<std::time::Instant>> {
+        anyhow::bail!("not applicable")
+    }
+
+    fn get_refresh_interval(&self) -> anyhow::Result<&u64> {
+        anyhow::bail!("not applicable")
+    }
+
+    fn get_cache(&self) -> anyhow::Result<&Option<String>> {
+        Ok(&self.0)
+    }
+
+    fn default_output(&self) -> anyhow::Result<&str> {
+        anyhow::bail!("not applicable")
     }
 
     fn update(&mut self) -> anyhow::Result<()> {
-        Ok(())
+        anyhow::bail!("not applicable")
     }
 
-    fn get_format_str(&self) -> anyhow::Result<String> {
-        Ok(self.0.clone())
+    fn update_check(&self) -> anyhow::Result<bool> {
+        anyhow::bail!("not applicable")
     }
 
-    fn format(&mut self) -> anyhow::Result<String> {
-        self.get_format_str()
-    }
-
-    fn update_format_cache(&mut self, _str: &str) -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    fn get_format_cache(&self) -> anyhow::Result<Option<String>> {
-        Ok(None)
+    fn update_maybe(&mut self) -> anyhow::Result<bool> {
+        Ok(false)
     }
 }

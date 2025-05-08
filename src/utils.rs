@@ -75,7 +75,7 @@ macro_rules! impl_component_methods {
 
     (default_output) => {
         fn default_output(&self) -> anyhow::Result<&str> {
-            Ok("N/A(default_output)")
+            Ok("N/A: (default_output)")
         }
     };
 

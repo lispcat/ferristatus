@@ -5,7 +5,7 @@ settings:
 
 components:
 
-  # - text: "all status "
+  - text: "all status "
 
   - Alsa:
       refresh_interval: 500
@@ -19,7 +19,7 @@ components:
           - [10,  "  {p}% "]
         muted: " MUTE({p}) "
 
-  # - text: "|"
+  - text: "|"
 
   - Backlight:
       refresh_interval: 500
