@@ -8,7 +8,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::utils::{apply_strfmt, deserialize_value, find_current_level, impl_component_methods, new_from_value};
+use crate::{apply_strfmt, impl_component_methods, new_from_value, utils::find_current_level};
 
 use super::Component;
 
@@ -22,7 +22,7 @@ pub struct Alsa {
 
 #[derive(Debug, SmartDefault)]
 pub struct AlsaState {
-    pub percent: Option<f64>,
+    pub percent: Option<i64>,
     pub is_muted: Option<bool>,
     pub last_updated: Option<time::Instant>,
     pub cache: Option<String>,
@@ -67,7 +67,8 @@ impl Component for Alsa {
 
     fn update_state(&mut self) -> anyhow::Result<()> {
         // Open the default mixer
-        let mixer = Mixer::new("default", false).context("failed to open the default mixer")?;
+        let mixer = Mixer::new("default", false)
+            .context("failed to open the default mixer")?;
 
         // Get the Master control
         let selem_id: SelemId = SelemId::new("Master", 0);
@@ -92,7 +93,7 @@ impl Component for Alsa {
             == 0;
 
         // update
-        self.state.percent = Some(vol_percent_f);
+        self.state.percent = Some(vol_percent_f.round() as i64);
         self.state.is_muted = Some(mute);
         self.state.last_updated = Some(time::Instant::now());
 
@@ -104,29 +105,24 @@ impl Component for Alsa {
         let is_muted = &self.state.is_muted;
         let levels = &self.settings.format.levels;
 
-        // percent is None
-        if percent.is_none() {
-            return Ok(Some("(N/A: unknown state: percent)"));
-        }
-        // is_muted is None
-        if is_muted.is_none() {
-            return Ok(Some("(N/A: unknown state: is_muted)"));
-        }
-        // is_muted is Some(b)
-        if is_muted.is_some_and(|b| b) {
-            return Ok(Some(self.settings.format.muted.as_str()));
-        }
+        let template: Option<&str> = match (is_muted, percent, levels) {
+            // is_muted is None
+            (None, _, _) => Some("N/A: (is_muted is None)"),
+            // is_muted is Some(true)
+            (Some(true), _, _) => Some(self.settings.format.muted.as_str()),
 
-        let template: Option<&str> = match (percent, levels) {
             // percent is None
-            (None, _) => Some("(N/A)"),
-            // levels is None, use default formatter
-            (Some(_), None) => Some(self.settings.format.default.as_str()),
-            // levels is Some
-            (Some(percent), Some(lvls)) => Some(
+            (_, None, _) => Some("(N/A)"),
+
+            // percent is Some, no levels
+            (_, Some(_), None) => Some(self.settings.format.default.as_str()),
+
+            // percent is Some, yes levels
+            (_, Some(percent), Some(lvls)) => Some(
                 find_current_level(lvls, percent)?
             ),
         };
+
         Ok(template)
     }
 
@@ -134,7 +130,7 @@ impl Component for Alsa {
         apply_strfmt!(
             template,
             "p" => match self.state.percent {
-                Some(v) => (v.round() as i64).to_string(),
+                Some(v) => v.to_string(),
                 None => "N/A".to_string(),
             },
         )

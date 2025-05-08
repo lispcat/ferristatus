@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_yml::Value;
 use smart_default::SmartDefault;
 
-use crate::utils::{apply_strfmt, deserialize_value, find_current_level, impl_component_methods, new_from_value};
+use crate::{apply_strfmt, impl_component_methods, new_from_value, utils::find_current_level};
 
 use super::Component;
 
@@ -68,7 +68,7 @@ impl Component for Backlight {
         let max_brightness: f32 = fs::read_to_string(path.join("max_brightness"))?
             .trim()
             .parse()?;
-        let percent = ((brightness * 100.0) / max_brightness) as i32;
+        let percent = ((brightness * 100.0) / max_brightness).round() as i32;
 
         self.state.percent = Some(percent);
         self.state.last_updated = Some(time::Instant::now());
@@ -86,11 +86,11 @@ impl Component for Backlight {
             // levels is None, use default formatter
             (Some(_), None) => Some(&self.settings.format.default),
             // levels is Some
-            // TODO: simplify with a function
             (Some(perc), Some(lvls)) => Some(
                 find_current_level(lvls, perc)?
             )
         };
+
         Ok(template)
     }
 

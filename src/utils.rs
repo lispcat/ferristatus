@@ -23,16 +23,17 @@ pub fn find_current_level<'a, T: PartialOrd<i32>>(
         .context("(N/A: could not find level)")
 }
 
+#[macro_export]
 macro_rules! deserialize_value {
     ( $value:tt ) => {{
         serde_yml::from_value($value.clone())?
     }};
 }
-pub(crate) use deserialize_value;
 
+#[macro_export]
 macro_rules! new_from_value {
     ( $value:tt => $component_settings:ident, sort_levels: $sort:expr ) => {{
-        let mut settings: $component_settings = deserialize_value!($value);
+        let mut settings: $component_settings = crate::deserialize_value!($value);
 
         if $sort {
             crate::utils::sort_levels(&mut settings.format.levels);
@@ -44,8 +45,8 @@ macro_rules! new_from_value {
         })
     }};
 }
-pub(crate) use new_from_value;
 
+#[macro_export]
 macro_rules! impl_component_methods {
     (set_cache) => {
         fn set_cache(&mut self, str: String) -> anyhow::Result<()> {
@@ -84,8 +85,8 @@ macro_rules! impl_component_methods {
         impl_component_methods!($($rest),+);
     };
 }
-pub(crate) use impl_component_methods;
 
+#[macro_export]
 macro_rules! apply_strfmt {
     ( $template:expr, $($key:expr => $value:expr),* $(,)? ) => {{
         let vars: std::collections::HashMap<String, String> = std::collections::HashMap::from([
@@ -96,4 +97,3 @@ macro_rules! apply_strfmt {
         Ok(Some(strfmt::strfmt($template, &vars)?))
     }};
 }
-pub(crate) use apply_strfmt;
