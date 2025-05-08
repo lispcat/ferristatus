@@ -1,11 +1,10 @@
-use std::{collections::HashMap, fs, path::PathBuf, time};
+use std::{fs, path::PathBuf, time};
 
-use anyhow::Context;
 use serde::Deserialize;
 use serde_yml::Value;
 use smart_default::SmartDefault;
 
-use crate::{deserialize_value, new_self_from_settings, utils};
+use crate::utils::{apply_strfmt, deserialize_value, find_current_level, impl_component_methods, new_from_value};
 
 use super::Component;
 
@@ -55,13 +54,10 @@ impl Component for Backlight {
     where
         Self: std::marker::Sized,
     {
-        let mut settings: BacklightSettings = deserialize_value!(value);
-
-        // sort order of levels
-        utils::sort_levels(&mut settings.format.levels);
-
-        // create new Self from
-        Ok(new_self_from_settings!(settings))
+        new_from_value!(
+            value => BacklightSettings,
+            sort_levels: true
+        )
     }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
@@ -80,11 +76,6 @@ impl Component for Backlight {
         Ok(())
     }
 
-    fn set_cache(&mut self, str: String) -> anyhow::Result<()> {
-        self.state.cache = Some(str);
-        Ok(())
-    }
-
     fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>> {
         let percent = &self.state.percent;
         let levels = &self.settings.format.levels;
@@ -97,42 +88,27 @@ impl Component for Backlight {
             // levels is Some
             // TODO: simplify with a function
             (Some(perc), Some(lvls)) => Some(
-                lvls.iter()
-                    .find(|(ceiling, _)| perc <= ceiling)
-                    .map(|(_, format_str)| format_str)
-                    .context("(N/A: could not find level)")?,
-            ),
+                find_current_level(lvls, perc)?
+            )
         };
         Ok(template)
     }
 
     fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>> {
-        // TODO: simplify with a macro
-        let vars: HashMap<String, String> = HashMap::from([(
-            "p".to_owned(),
-            match self.state.percent {
+        apply_strfmt!(
+            template,
+            "p" => match self.state.percent {
                 Some(v) => v.to_string(),
                 None => "N/A".to_string(),
             },
-        )]);
-        let res = strfmt::strfmt(template, &vars)?;
-
-        Ok(Some(res))
+        )
     }
 
-    fn get_last_updated(&self) -> anyhow::Result<&Option<std::time::Instant>> {
-        Ok(&self.state.last_updated)
-    }
-
-    fn get_refresh_interval(&self) -> anyhow::Result<&u64> {
-        Ok(&self.settings.refresh_interval)
-    }
-
-    fn get_cache(&self) -> anyhow::Result<&Option<String>> {
-        Ok(&self.state.cache)
-    }
-
-    fn default_output(&self) -> anyhow::Result<&str> {
-        Ok("N/A(default_output)")
-    }
+    impl_component_methods!(
+        set_cache,
+        get_last_updated,
+        get_refresh_interval,
+        get_cache,
+        default_output
+    );
 }

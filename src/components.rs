@@ -1,8 +1,10 @@
 mod backlight;
+mod alsa;
 
 use core::fmt;
 use std::{collections::HashMap, fmt::{Debug, Display}, time::{Duration, Instant}};
 
+use alsa::Alsa;
 use anyhow::Context;
 use backlight::Backlight;
 use serde::{Deserialize, Deserializer};
@@ -23,9 +25,9 @@ pub trait Component: Debug {
         Self: std::marker::Sized;
 
     fn update_state(&mut self) -> anyhow::Result<()>;
-    fn set_cache(&mut self, str: String) -> anyhow::Result<()>;
     fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>>;
     fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>>;
+    fn set_cache(&mut self, str: String) -> anyhow::Result<()>;
     fn update(&mut self) -> anyhow::Result<()> {
         self.update_state().context("failed to update state for component")?;
 
@@ -83,10 +85,10 @@ impl Display for dyn Component {
     }
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 //                                ComponentVec                               //
 ///////////////////////////////////////////////////////////////////////////////
-
 
 #[derive(SmartDefault, Debug)]
 pub struct ComponentVec {
@@ -127,6 +129,7 @@ impl<'de> Deserialize<'de> for ComponentVec {
                 create_component_from_name!(
                     name, value,
                     "backlight" => Backlight,
+                    "alsa" => Alsa,
                 )
             })
             .collect::<Result<_, anyhow::Error>>()

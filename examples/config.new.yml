@@ -7,17 +7,17 @@ components:
 
   # - text: "all status "
 
-  # - Alsa:
-  #     refresh_interval: 500
-  #     signal: 6
+  - Alsa:
+      refresh_interval: 500
+      signal: 6
 
-  #     format:
-  #       default: " ? {p}% "
-  #       levels:
-  #         - [100, "  {p}% "]
-  #         - [40,  "  {p}% "]
-  #         - [10,  "  {p}% "]
-  #       muted: " MUTE({p}) "
+      format:
+        default: " ? {p}% "
+        levels:
+          - [100, "  {p}% "]
+          - [40,  "  {p}% "]
+          - [10,  "  {p}% "]
+        muted: " MUTE({p}) "
 
   # - text: "|"
 
