@@ -72,6 +72,7 @@ pub trait Component: Debug {
 
     fn get_last_updated(&self) -> anyhow::Result<&Option<std::time::Instant>>;
     fn get_refresh_interval(&self) -> anyhow::Result<&u64>;
+
     fn get_cache(&self) -> anyhow::Result<Option<&str>>;
 
     fn default_output(&self) -> anyhow::Result<&str>;
@@ -81,8 +82,7 @@ impl Display for dyn Component {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let out = self.get_cache()
             .expect("failed to get component cache")
-            .as_ref()
-            .map_or("N/A(no_cache_to_display)",  |v| v);
+            .unwrap_or("N/A: (no_cache_to_display)");
         write!(f, "{}", out)
     }
 }
