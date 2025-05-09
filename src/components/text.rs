@@ -7,7 +7,7 @@ use super::Component;
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct Text(Option<String>);
+pub struct Text(String);
 
 impl Component for Text {
     fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
@@ -27,11 +27,11 @@ impl Component for Text {
         anyhow::bail!("not applicable")
     }
 
-    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>> {
+    fn apply_strfmt_template(&self, _template: &str) -> anyhow::Result<Option<String>> {
         anyhow::bail!("not applicable")
     }
 
-    fn set_cache(&mut self, str: String) -> anyhow::Result<()> {
+    fn set_cache(&mut self, _str: String) -> anyhow::Result<()> {
         anyhow::bail!("not applicable")
     }
 
@@ -43,8 +43,8 @@ impl Component for Text {
         anyhow::bail!("not applicable")
     }
 
-    fn get_cache(&self) -> anyhow::Result<&Option<String>> {
-        Ok(&self.0)
+    fn get_cache(&self) -> anyhow::Result<Option<&str>> {
+        Ok(Some(&self.0))
     }
 
     fn default_output(&self) -> anyhow::Result<&str> {

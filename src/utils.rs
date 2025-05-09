@@ -33,10 +33,10 @@ macro_rules! deserialize_value {
 #[macro_export]
 macro_rules! new_from_value {
     ( $value:tt => $component_settings:ident, sort_levels: $sort:expr ) => {{
-        let mut settings: $component_settings = crate::deserialize_value!($value);
+        let mut settings: $component_settings = $crate::deserialize_value!($value);
 
         if $sort {
-            crate::utils::sort_levels(&mut settings.format.levels);
+            $crate::utils::sort_levels(&mut settings.format.levels);
         }
 
         Ok(Self {
@@ -68,8 +68,8 @@ macro_rules! impl_component_methods {
     };
 
     (get_cache) => {
-        fn get_cache(&self) -> anyhow::Result<&Option<String>> {
-            Ok(&self.state.cache)
+        fn get_cache(&self) -> anyhow::Result<Option<&str>> {
+            Ok(self.state.cache.as_ref().map(|x| x.as_str()))
         }
     };
 

@@ -20,22 +20,22 @@ fn update_all_components(components: &mut Vec<Box<dyn Component>>) -> anyhow::Re
 
 fn collect_cache_for_components(
     components: &Vec<Box<dyn Component>>
-) -> anyhow::Result<Vec<&Option<String>>> {
+) -> anyhow::Result<Vec<Option<&str>>> {
     components
         .iter()
-        .map(|c| -> anyhow::Result<&Option<String>> {
+        .map(|c| -> anyhow::Result<Option<&str>> {
             c.get_cache()
         })
         .collect::<Result<Vec<_>, _>>()
 }
 
-fn print_collected_cache(cache_collected: &Vec<&Option<String>>) -> anyhow::Result<()> {
+fn print_collected_cache(cache_collected: &Vec<Option<&str>>) -> anyhow::Result<()> {
     for c in cache_collected {
         match c {
             Some(v) => {
                 print!("{}", v);
             },
-            None => print!("N/A(no_cache)"),
+            None => print!("N/A: (no_cache)"),
         }
     }
     println!();
