@@ -1,6 +1,6 @@
 settings:
 
-  check_interval: 500
+  check_interval: 1000
   default_separator: ""
 
 components:
@@ -8,7 +8,7 @@ components:
   - text: "all status "
 
   - Alsa:
-      refresh_interval: 500
+      refresh_interval: 1000
       signal: 6
 
       format:
@@ -22,7 +22,7 @@ components:
   - text: "|"
 
   - Backlight:
-      refresh_interval: 500
+      refresh_interval: 1000
       signal: 7
 
       path: "/sys/class/backlight/acpi_video0"
@@ -33,7 +33,7 @@ components:
   - text: "|"
 
   - Battery:
-      refresh_interval: 2000
+      refresh_interval: 1000
       signal: 8
 
       format:
@@ -51,7 +51,7 @@ components:
   - text: "|"
 
   - Time:
-      refresh_interval: 500
+      refresh_interval: 1000
       signal: 9
 
       time: "%a %d %b %I:%M %P"

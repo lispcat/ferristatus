@@ -8,7 +8,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::{apply_strfmt, impl_component_methods, new_from_value, utils::find_current_level};
+use crate::{apply_strfmt, impl_component_methods, utils::find_current_level};
 
 use super::Component;
 
@@ -26,6 +26,8 @@ pub struct AlsaState {
     pub is_muted: Option<bool>,
     pub last_updated: Option<time::Instant>,
     pub cache: Option<String>,
+
+    pub mixer: Option<Mixer>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -59,18 +61,27 @@ impl Component for Alsa {
     where
         Self: std::marker::Sized,
     {
-        new_from_value!(
-            value => AlsaSettings,
-            sort_levels: true
-        )
+        let mut new = Self {
+            settings: crate::deserialize_value!(value),
+            ..Self::default()
+        };
+        
+        new.state.mixer = Some(
+            Mixer::new("default", false)
+                .context("failed to open the default mixer")?
+        );
+
+        Ok(new)
     }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
-        // Open the default mixer
-        let mixer = Mixer::new("default", false)
-            .context("failed to open the default mixer")?;
-
         // Get the Master control
+        let mixer = self.state.mixer.as_ref()
+            .context("mixer is none")?;
+
+        // refresh the mixer
+        mixer.handle_events().ok();
+
         let selem_id: SelemId = SelemId::new("Master", 0);
         let selem: Selem<'_> = mixer
             .find_selem(&selem_id)
