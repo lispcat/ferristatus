@@ -74,7 +74,8 @@ impl Component for Battery {
                 crate::utils::sort_levels(&mut settings.format.discharging);
             }
             Ok(Self {
-                settings, ..Self::default()
+                settings,
+                ..Self::default()
             })
         }
     }

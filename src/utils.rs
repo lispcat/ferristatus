@@ -18,9 +18,9 @@ pub fn find_current_level<'a, T: PartialOrd<i32>>(
 ) -> anyhow::Result<&'a str> {
     levels
         .iter()
-        .find(|(lvl, _)| current >= lvl)
+        .find_or_last(|(ceiling, _)| current > ceiling)
         .map(|(_, format_str)| format_str.as_str())
-        .context("(N/A: could not find level)")
+        .context("failed to find_current_level")
 }
 
 #[macro_export]

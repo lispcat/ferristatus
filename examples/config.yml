@@ -22,7 +22,7 @@ components:
   - text: "|"
 
   - Backlight:
-      refresh_interval: 1000
+      refresh_interval: 500
       signal: 7
 
       path: "/sys/class/backlight/acpi_video0"
@@ -33,7 +33,7 @@ components:
   - text: "|"
 
   - Battery:
-      refresh_interval: 1000
+      refresh_interval: 2000
       signal: 8
 
       format:
