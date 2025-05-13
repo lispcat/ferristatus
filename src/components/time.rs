@@ -1,8 +1,10 @@
-use std::{collections::HashMap, time};
+use std::time;
 
 use chrono::{DateTime, Local};
 use serde::Deserialize;
 use smart_default::SmartDefault;
+
+use crate::{apply_strfmt, impl_component_methods, new_from_value};
 
 use super::Component;
 
@@ -18,14 +20,14 @@ pub struct Time {
 pub struct TimeState {
     pub now: Option<DateTime<Local>>,
     pub last_updated: Option<time::Instant>,
-    pub format_cache: Option<String>,
+    pub cache: Option<String>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TimeSettings {
     #[default(500)]
-    pub refresh_interval: u32,
+    pub refresh_interval: u64,
 
     #[default(8)]
     pub signal: u32,
@@ -45,48 +47,39 @@ pub struct TimeFormatSettings {
 }
 
 impl Component for Time {
-    fn name(&self) -> String {
-        "time".to_owned()
+    fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
+    where
+        Self: std::marker::Sized
+    {
+        new_from_value!(
+            value => TimeSettings
+        )
     }
 
-    fn get_refresh_interval(&self) -> u32 {
-        self.settings.refresh_interval
-    }
-
-    fn get_last_updated(&self) -> Option<std::time::Instant> {
-        self.state.last_updated
-    }
-
-    fn update(&mut self) -> anyhow::Result<()> {
+    fn update_state(&mut self) -> anyhow::Result<()> {
         self.state.now = Some(Local::now());
         Ok(())
     }
 
-    fn get_format_str(&self) -> anyhow::Result<String> {
-        Ok(self.settings.format.default.clone())
+    fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>> {
+        Ok(Some(&self.settings.format.default))
     }
 
-    fn format(&mut self) -> anyhow::Result<String> {
-        let format_string = &self.get_format_str()?;
-        let time_fmt = &self.settings.time;
-        let vars: HashMap<String, String> = HashMap::from([(
-            "t".to_owned(),
-            match self.state.now {
-                Some(datetime) => datetime.format(time_fmt.as_str()).to_string(),
+    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>> {
+        apply_strfmt!(
+            template,
+            "t" => match self.state.now {
+                Some(datetime) => datetime.format(&self.settings.time).to_string(),
                 None => "N/A".to_string(),
-            },
-        )]);
-        let res = strfmt::strfmt(format_string, &vars)?;
-        self.update_format_cache(&res)?;
-        Ok(res)
+            }
+        )
     }
 
-    fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()> {
-        self.state.format_cache = Some(str.to_string());
-        Ok(())
-    }
-
-    fn get_format_cache(&self) -> anyhow::Result<Option<String>> {
-        Ok(self.state.format_cache.clone())
-    }
+    impl_component_methods!(
+        set_cache,
+        get_last_updated,
+        get_refresh_interval,
+        get_cache,
+        default_output
+    );
 }

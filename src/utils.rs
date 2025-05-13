@@ -44,6 +44,14 @@ macro_rules! new_from_value {
             ..Self::default()
         })
     }};
+    ( $value:tt => $component_settings:ident ) => {{
+        let settings: $component_settings = $crate::deserialize_value!($value);
+
+        Ok(Self {
+            settings,
+            ..Self::default()
+        })
+    }};
 }
 
 #[macro_export]

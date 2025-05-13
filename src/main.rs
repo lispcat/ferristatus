@@ -79,7 +79,7 @@ mod tests {
     fn main() -> anyhow::Result<()> {
         // parse args
         let args = Args {
-            config_path: "examples/config.new.yml".into(),
+            config_path: "examples/config.yml".into(),
         };
 
         // parse config

@@ -2,6 +2,7 @@ mod backlight;
 mod alsa;
 mod text;
 mod battery;
+mod time;
 
 use core::fmt;
 use std::{collections::HashMap, fmt::{Debug, Display}, time::{Duration, Instant}};
@@ -14,6 +15,7 @@ use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
 use text::Text;
+use time::Time;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -136,6 +138,7 @@ impl<'de> Deserialize<'de> for ComponentVec {
                     "backlight" => Backlight,
                     "battery" => Battery,
                     "text" => Text,
+                    "time" => Time,
                 )
             })
             .collect::<Result<_, anyhow::Error>>()
