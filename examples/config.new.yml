@@ -30,23 +30,23 @@ components:
       format:
         default: "  {p} "
 
-  # - text: "|"
+  - text: "|"
 
-  # - Battery:
-  #     refresh_interval: 2000
-  #     signal: 8
+  - Battery:
+      refresh_interval: 2000
+      signal: 8
 
-  #     format:
-  #       full: " Full({p}) "
-  #       charging: "  {p}% {t} "
-  #       discharging:
-  #         - [100, "  {p}% {t} "]
-  #         - [70,  "  {p}% {t} "]
-  #         - [50,  "  {p}% {t} "]
-  #         - [30,  "  {p}% {t} "]
-  #         - [10,  "  {p}% {t} "]
-  #       not_charging: " ? {p}% {t} "
-  #       default: " ? {p}% {t} "
+      format:
+        full: " Full({p}) "
+        charging: "  {p}% {t} "
+        discharging:
+          - [100, "  {p}% {t} "]
+          - [70,  "  {p}% {t} "]
+          - [50,  "  {p}% {t} "]
+          - [30,  "  {p}% {t} "]
+          - [10,  "  {p}% {t} "]
+        not_charging: " ? {p}% {t} "
+        default: " ? {p}% {t} "
 
   # - text: "|"
 

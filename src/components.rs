@@ -1,6 +1,7 @@
 mod backlight;
 mod alsa;
 mod text;
+mod battery;
 
 use core::fmt;
 use std::{collections::HashMap, fmt::{Debug, Display}, time::{Duration, Instant}};
@@ -8,6 +9,7 @@ use std::{collections::HashMap, fmt::{Debug, Display}, time::{Duration, Instant}
 use alsa::Alsa;
 use anyhow::Context;
 use backlight::Backlight;
+use battery::Battery;
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
@@ -130,8 +132,9 @@ impl<'de> Deserialize<'de> for ComponentVec {
             .map(|(name, value)| -> anyhow::Result<Box<dyn Component>> {
                 create_component_from_name!(
                     name, value,
-                    "backlight" => Backlight,
                     "alsa" => Alsa,
+                    "backlight" => Backlight,
+                    "battery" => Battery,
                     "text" => Text,
                 )
             })

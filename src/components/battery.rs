@@ -1,12 +1,13 @@
-use std::{collections::HashMap, path::PathBuf, time};
+use std::{path::PathBuf, time};
 
 use acpi_client::{BatteryInfo, ChargingState};
 use anyhow::Context;
-use itertools::Itertools;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
 use smart_default::SmartDefault;
+
+use crate::{apply_strfmt, impl_component_methods, utils::find_current_level};
 
 use super::Component;
 
@@ -20,16 +21,18 @@ pub struct Battery {
 
 #[derive(Debug, SmartDefault)]
 pub struct BatteryState {
-    pub battery_info: Option<BatteryInfo>,
+    pub percent: Option<i32>,
+    pub time: Option<time::Duration>,
+    pub charging_state: Option<ChargingState>,
     pub last_updated: Option<time::Instant>,
-    pub format_cache: Option<String>,
+    pub cache: Option<String>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BatterySettings {
     #[default(1000)]
-    pub refresh_interval: u32,
+    pub refresh_interval: u64,
 
     #[default(7)]
     pub signal: u32,
@@ -47,13 +50,13 @@ pub struct BatteryFormatSettings {
     #[default(" B: {p}% {t} ")]
     pub default: String,
 
-    #[default(" Full({p}) ".to_string())]
+    #[default(" Full({p}) ")]
     pub full: String,
 
-    #[default(" ? {p}% ".to_string())]
+    #[default(" ? {p}% ")]
     pub not_charging: String,
 
-    #[default("  {p}% {t} ".to_string())]
+    #[default("  {p}% {t} ")]
     pub charging: String,
 
     #[default(None)]
@@ -61,92 +64,95 @@ pub struct BatteryFormatSettings {
 }
 
 impl Component for Battery {
-    fn name(&self) -> String {
-        "battery".to_owned()
-    }
-
-    fn get_refresh_interval(&self) -> u32 {
-        self.settings.refresh_interval
-    }
-
-    fn get_last_updated(&self) -> Option<std::time::Instant> {
-        self.state.last_updated
-    }
-
-    fn update(&mut self) -> anyhow::Result<()> {
-        let path = &self.settings.path;
-        let battery_info =
-            BatteryInfo::new(path).context("failed to create new BatteryInfo instance")?;
-
-        self.state.battery_info = Some(battery_info);
-        self.state.last_updated = Some(time::Instant::now());
-        Ok(())
-    }
-
-    fn get_format_str(&self) -> anyhow::Result<String> {
-        let format_settings = &self.settings.format;
-        let battery_info = match &self.state.battery_info {
-            Some(b) => b,
-            None => anyhow::bail!("failed to get battery_info"),
-        };
-
-        match battery_info.state {
-            ChargingState::Full => Ok(format_settings.full.clone()),
-            ChargingState::Charging => Ok(format_settings.charging.clone()),
-            ChargingState::NotCharging => Ok(format_settings.not_charging.clone()),
-            ChargingState::Discharging => {
-                let levels = &self.settings.format.discharging;
-                match levels {
-                    None => Ok(format_settings.default.clone()),
-                    Some(lvls) => {
-                        let percent = battery_info.percentage.round() as i32;
-                        Ok(lvls
-                            .iter()
-                            .sorted_by(|a, b| a.0.cmp(&b.0))
-                            .find(|(ceiling, _)| percent <= *ceiling)
-                            .map(|(_, format_str)| format_str.clone())
-                            .unwrap_or_else(|| "(N/A: could not find level)".to_owned()))
-                    }
-                }
+    fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
+    where
+        Self: std::marker::Sized
+    {
+        {
+            let mut settings:BatterySettings = crate::deserialize_value!(value);
+            if true {
+                crate::utils::sort_levels(&mut settings.format.discharging);
             }
+            Ok(Self {
+                settings, ..Self::default()
+            })
         }
     }
 
-    fn format(&mut self) -> anyhow::Result<String> {
-        let format_string = &self.get_format_str()?;
-        let vars: HashMap<String, String> = HashMap::from([
-            (
-                "p".to_owned(),
-                match &self.state.battery_info {
-                    Some(b) => (b.percentage.round() as i32).to_string(),
-                    None => "N/A".to_string(),
-                },
-            ),
-            (
-                "t".to_owned(),
-                match &self.state.battery_info {
-                    None => "N/A".to_string(),
-                    Some(b) => {
-                        let duration = b.time_remaining;
-                        let time = &humantime::format_duration(duration).to_string();
-                        static RE: Lazy<Regex> =
-                            Lazy::new(|| Regex::new(r"\s[0-9]+s$").expect("could not build regex"));
-                        RE.replace(time, "").to_string()
-                    }
-                },
-            ),
-        ]);
-        let res = strfmt::strfmt(format_string, &vars)?;
-        self.update_format_cache(&res)?;
-        Ok(res)
-    }
+    fn update_state(&mut self) -> anyhow::Result<()> {
+        let path = &self.settings.path;
+        let battery_info = BatteryInfo::new(path)
+            .context("failed to create new BatteryInfo instance")?;
 
-    fn update_format_cache(&mut self, str: &str) -> anyhow::Result<()> {
-        self.state.format_cache = Some(str.to_string());
+        self.state.percent = Some(battery_info.percentage.round() as i32);
+        self.state.time = Some(battery_info.time_remaining);
+        self.state.charging_state = Some(battery_info.state);
+
+        self.state.last_updated = Some(time::Instant::now());
+
         Ok(())
     }
 
-    fn get_format_cache(&self) -> anyhow::Result<Option<String>> {
-        Ok(self.state.format_cache.clone())
+    fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>> {
+        let format_settings = &self.settings.format;
+        let charging_state = self.state.charging_state
+            .context("no charging state")?;
+
+        let template: Option<&str> = match charging_state {
+            ChargingState::Full => Some(
+                &format_settings.full
+            ),
+            ChargingState::Charging => Some(
+                &format_settings.charging
+            ),
+            ChargingState::NotCharging => Some(
+                &format_settings.not_charging
+            ),
+            ChargingState::Discharging => {
+                let levels = &self.settings.format.discharging;
+                let percent = self.state.percent
+                    .context("no percent in state")?;
+
+                match levels {
+                    // levels is None, use default formatter
+                    None => Some(&self.settings.format.default),
+                    // levels is Some
+                    Some(lvls) => Some(
+                        find_current_level(lvls, &percent)?
+                    )
+                }
+            }
+        };
+        
+        Ok(template)
     }
+
+    fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>> {
+        apply_strfmt!(
+            template,
+            "p" => match self.state.percent {
+                None => "N/A".to_string(),
+                Some(v) => v.to_string(),
+            },
+            "t" => match self.state.time {
+                None => "N/A".to_string(),
+                Some(t) => {
+                    let visual_time = &humantime::format_duration(t).to_string();
+                    static RE: Lazy<Regex> = Lazy::new(
+                        || Regex::new(r"\s[0-9]+s$").expect("could not build regex")
+                    );
+                    RE.replace(visual_time, "").to_string()
+                }
+            }
+        )
+    }
+
+    impl_component_methods!(
+        set_cache,
+        get_last_updated,
+        get_refresh_interval,
+        get_cache,
+        default_output
+    );
 }
+
