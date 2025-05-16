@@ -117,11 +117,11 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
 
 - refresh_interval :: Update frequency.
   - type: u_int
-  - default: 1000
+  - default: =1000=
 
 - signal :: Unix real-time signal.
   - type: u_int
-  - default: 5
+  - default: =5=
 
 - format :: Formatting settings:
 
@@ -135,7 +135,7 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
 
   - levels :: Value-ranges for each template.
     - type: Option<alist>
-    - default: None
+    - default: =None=
 
 ** Backlight
 
@@ -159,11 +159,11 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
 
 - refresh_interval :: Update frequency.
   - type: u_int
-  - default: 1000
+  - default: =1000=
 
 - signal :: Unix real-time signal.
   - type: u_int
-  - default: 6
+  - default: =6=
 
 - path :: Path to the backlight sysfs entry.
   - type: Path
@@ -177,7 +177,7 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
 
   - levels :: Value-ranges for each template.
     - type: Option<alist>
-    - default: None
+    - default: =None=
 
 ** Battery
 
@@ -209,11 +209,11 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
 
 - refresh_interval :: Update frequency.
   - type: u_int
-  - default: 1000
+  - default: =1000=
 
 - signal :: Unix real-time signal.
   - type: u_int
-  - default: 7
+  - default: =7=
 
 - path :: Path to the battery sysfs entry.
   - type: Path
@@ -239,7 +239,7 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
 
   - discharging :: If discharging, value-ranges for each template to use.
     - type: Option<alist>
-    - default: None
+    - default: =None=
 
 ** Command
 
@@ -258,11 +258,11 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
 
 - refresh_interval :: Update frequency.
   - type: u_int
-  - default: 1000
+  - default: =1000=
 
 - signal :: Unix real-time signal.
   - type: u_int
-  - default: 8
+  - default: =8=
 
 - shell_command :: Shell command to execute.
   - type: String
@@ -299,11 +299,11 @@ The Time module prints the current time using a specified date format string.
 
 - refresh_interval :: Update frequency.
   - type: u_int
-  - default: 1000
+  - default: =1000=
 
 - signal :: Unix real-time signal.
   - type: u_int
-  - default: 9
+  - default: =9=
 
 - time :: Date format string to use.
   - type: String
@@ -314,3 +314,9 @@ The Time module prints the current time using a specified date format string.
   - default :: The template to use.
     - type: String
     - default: =" {t} "=
+
+* todo
+
+- [ ] implement signals
+- [ ] lots of unit tests and debugging edge cases
+- [ ] add license
