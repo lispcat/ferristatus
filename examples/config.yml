@@ -1,6 +1,6 @@
 settings:
 
-  check_interval: 1000
+  check_interval: 500
   default_separator: ""
 
 components:

@@ -2,31 +2,101 @@
 
 * Overview
 
-This is a minimal status bar printer inspired by dwmblocks and slstatus, written in Rust.
+This is a minimal statusbar info printer inspired by slstatus and dwmblocks, written in Rust.
 
-* Notes
-may need to impl ComponentSettings and ComponentFormat to simplify...
+It's configured in YAML and supports the following built-in modules:
+- Alsa
+- Backlight
+- Battery
+- Command
+- Text
+- Time
 
-+ trait Component: Display
-  - new_from_settings -> [Self, Err]
-  - update_check -> [bool, Err]
-  - update_cache -> [_, Err]
-  - update_maybe <G> -> [bool, Err]
-    if (update_check)
-    then (update_cache); 't
-    else 'nil
-  - display -> impl
-    self.state.get_cache
+* Purpose
 
-+ trait ComponentSettings: Deserialize
-  - get_refresh_interval
+I've used various statusbar info printers in the past, like slstatus, dwmblocks, and i3blocks, but none of them fully met my needs, so I've been using a custom bash script for the longest time. This script was slow, prone to bugs, hard to extend, and depended heavily on external programs.
 
-+ trait ComponentState:
-  - get_last_updated
-  - get_cache
+This project seeks to replace that script, by being significantly more robust, performant, maintainable, and extensible, as well as not needing any external programs for any of the built-in modules at runtime.
 
-+ 'de Components
-  - map each key/value...
-    - match key as str, component name =>
-      - deserialize, instantiate Component from settings (new_from_settings).
-  - collect
+* Usage
+
+- Copy the example config file to the config dir:
+
+  =$ mkdir -p ~/.config/ferristatus=
+  =$ cp ferristatus/examples/config.yml ~/.config/ferristatus/=
+
+- Modify the config file as needed
+
+- Print it to a statusbar by piping its stdout to the statusbar's stdin:
+
+  =$ ferristatus | super-cool-bar -stdin=
+
+  (note: not all statusbars support reading from stdin.)
+
+* Configuration
+
+The config file is comprised of two top-level categories: =settings= and =components=.
+
+** general settings
+
+Here we set general settings:
+
+#+begin_src yaml
+
+settings:
+  check_interval: 500
+  default_separator: ""
+
+#+end_src
+
+- check_interval :: the frequency (ms) at which to check if any modules need updating, and then printing to stdout.
+- default_separator :: the default separator character between each module.
+
+** components: the modules
+
+Here we define a list of our modules (aka Components):
+
+#+begin_src yaml
+
+components:
+
+  - Alsa:
+      refresh_interval: 1000
+      signal: 6
+
+      format:
+        default: " ? {p}% "
+        muted: " MUTE({p}) "
+        levels:
+          - [100, "  {p}% "]
+          - [40,  "  {p}% "]
+          - [10,  "  {p}% "]
+
+  ...
+
+#+end_src
+
+Most modules have the following settings:
+
+- refresh_interval :: the frequency (ms) at which to update this module.
+- signal :: (WIP) forcefully updates the module and reprints, when it receives the corresponding UNIX real-time signal.
+  - given this example, running =$ kill -SIGRTMIN+1 <insert ferristatus pid here>= will forcefully refresh the Alsa module and reprint.
+
+A lot of modules have a =format= category to customize how it should be printed to stdout. In the case of the Alsa component, there are three fields: =default=, =muted=, and =levels=.
+- Since =default= is set to ~" ? {p}% "~, the ~"{p}"~ substring will be replaced with the current Alsa volume percentage.
+- Same principle for =muted=.
+- As for =levels=, this takes an alist of a numerical threshold and a string. When the current value (in this case the Alsa volume percentage) is for example, 70, it will print the string corresponding to 100. So in other words, the format string to be used will correspond to the first threshold value greater than the current value.
+
+Below are descriptions of every module and its settings:
+
+*** TODO Alsa
+
+*** TODO Backlight
+
+*** TODO Battery
+
+*** TODO Command
+
+*** TODO Text
+
+*** TODO Time
