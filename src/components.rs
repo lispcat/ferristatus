@@ -1,27 +1,31 @@
-mod backlight;
 mod alsa;
-mod text;
+mod backlight;
 mod battery;
+mod command;
+mod text;
 mod time;
 
 use core::fmt;
-use std::{collections::HashMap, fmt::{Debug, Display}, time::{Duration, Instant}};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+    time::{Duration, Instant},
+};
 
 use alsa::Alsa;
 use anyhow::Context;
 use backlight::Backlight;
 use battery::Battery;
+use command::Command;
 use serde::{Deserialize, Deserializer};
 use serde_yml::Value;
 use smart_default::SmartDefault;
 use text::Text;
 use time::Time;
 
-
 ///////////////////////////////////////////////////////////////////////////////
 //                              Component Traits                             //
 ///////////////////////////////////////////////////////////////////////////////
-
 
 // trait Component ////////////////////////////////////////////////////////////
 
@@ -35,7 +39,8 @@ pub trait Component: Debug {
     fn apply_strfmt_template(&self, template: &str) -> anyhow::Result<Option<String>>;
     fn set_cache(&mut self, str: String) -> anyhow::Result<()>;
     fn update(&mut self) -> anyhow::Result<()> {
-        self.update_state().context("failed to update state for component")?;
+        self.update_state()
+            .context("failed to update state for component")?;
 
         let template: Option<&str> = self.get_strfmt_template()?;
 
@@ -56,9 +61,7 @@ pub trait Component: Debug {
             Some(v) => v,
             None => return Ok(true),
         };
-        let interval = Duration::from_millis(
-            *self.get_refresh_interval()?
-        );
+        let interval = Duration::from_millis(*self.get_refresh_interval()?);
         let elapsed = last_updated.elapsed();
         Ok(elapsed > interval)
     }
@@ -67,10 +70,8 @@ pub trait Component: Debug {
             true => {
                 self.update()?;
                 Ok(true)
-            },
-            false => {
-                Ok(false)
             }
+            false => Ok(false),
         }
     }
 
@@ -84,13 +85,13 @@ pub trait Component: Debug {
 
 impl Display for dyn Component {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let out = self.get_cache()
+        let out = self
+            .get_cache()
             .expect("failed to get component cache")
             .unwrap_or("N/A: (no_cache_to_display)");
         write!(f, "{}", out)
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                ComponentVec                               //
@@ -130,7 +131,8 @@ impl<'de> Deserialize<'de> for ComponentVec {
             .collect();
 
         // Parse each component
-        let components_new: Vec<Box<dyn Component>> = components_flattened.iter()
+        let components_new: Vec<Box<dyn Component>> = components_flattened
+            .iter()
             .map(|(name, value)| -> anyhow::Result<Box<dyn Component>> {
                 create_component_from_name!(
                     name, value,
@@ -139,13 +141,12 @@ impl<'de> Deserialize<'de> for ComponentVec {
                     "battery" => Battery,
                     "text" => Text,
                     "time" => Time,
+                    "command" => Command,
                 )
             })
             .collect::<Result<_, anyhow::Error>>()
             .map_err(|e| {
-                serde::de::Error::custom(
-                    format!("could not parse settings for component: {}", e)
-                )
+                serde::de::Error::custom(format!("could not parse settings for component: {}", e))
             })?;
 
         Ok(ComponentVec {

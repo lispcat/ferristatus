@@ -49,7 +49,7 @@ pub struct TimeFormatSettings {
 impl Component for Time {
     fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
     where
-        Self: std::marker::Sized
+        Self: std::marker::Sized,
     {
         new_from_value!(
             value => TimeSettings

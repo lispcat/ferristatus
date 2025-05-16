@@ -12,12 +12,13 @@ pub struct Text(String);
 impl Component for Text {
     fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
     where
-        Self: std::marker::Sized {
-            {
-                let text: Text = crate::deserialize_value!(value);
-                Ok(text)
-            }
+        Self: std::marker::Sized,
+    {
+        {
+            let text: Text = crate::deserialize_value!(value);
+            Ok(text)
         }
+    }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
         anyhow::bail!("not applicable")

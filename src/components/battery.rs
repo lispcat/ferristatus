@@ -66,10 +66,10 @@ pub struct BatteryFormatSettings {
 impl Component for Battery {
     fn new_from_value(value: &serde_yml::Value) -> anyhow::Result<Self>
     where
-        Self: std::marker::Sized
+        Self: std::marker::Sized,
     {
         {
-            let mut settings:BatterySettings = crate::deserialize_value!(value);
+            let mut settings: BatterySettings = crate::deserialize_value!(value);
             if true {
                 crate::utils::sort_levels(&mut settings.format.discharging);
             }
@@ -82,8 +82,8 @@ impl Component for Battery {
 
     fn update_state(&mut self) -> anyhow::Result<()> {
         let path = &self.settings.path;
-        let battery_info = BatteryInfo::new(path)
-            .context("failed to create new BatteryInfo instance")?;
+        let battery_info =
+            BatteryInfo::new(path).context("failed to create new BatteryInfo instance")?;
 
         self.state.percent = Some(battery_info.percentage.round() as i32);
         self.state.time = Some(battery_info.time_remaining);
@@ -96,35 +96,25 @@ impl Component for Battery {
 
     fn get_strfmt_template(&self) -> anyhow::Result<Option<&str>> {
         let format_settings = &self.settings.format;
-        let charging_state = self.state.charging_state
-            .context("no charging state")?;
+        let charging_state = self.state.charging_state.context("no charging state")?;
 
         let template: Option<&str> = match charging_state {
-            ChargingState::Full => Some(
-                &format_settings.full
-            ),
-            ChargingState::Charging => Some(
-                &format_settings.charging
-            ),
-            ChargingState::NotCharging => Some(
-                &format_settings.not_charging
-            ),
+            ChargingState::Full => Some(&format_settings.full),
+            ChargingState::Charging => Some(&format_settings.charging),
+            ChargingState::NotCharging => Some(&format_settings.not_charging),
             ChargingState::Discharging => {
                 let levels = &self.settings.format.discharging;
-                let percent = self.state.percent
-                    .context("no percent in state")?;
+                let percent = self.state.percent.context("no percent in state")?;
 
                 match levels {
                     // levels is None, use default formatter
                     None => Some(&self.settings.format.default),
                     // levels is Some
-                    Some(lvls) => Some(
-                        find_current_level(lvls, &percent)?
-                    )
+                    Some(lvls) => Some(find_current_level(lvls, &percent)?),
                 }
             }
         };
-        
+
         Ok(template)
     }
 
@@ -156,4 +146,3 @@ impl Component for Battery {
         default_output
     );
 }
-

@@ -65,19 +65,16 @@ impl Component for Alsa {
             settings: crate::deserialize_value!(value),
             ..Self::default()
         };
-        
-        new.state.mixer = Some(
-            Mixer::new("default", false)
-                .context("failed to open the default mixer")?
-        );
+
+        new.state.mixer =
+            Some(Mixer::new("default", false).context("failed to open the default mixer")?);
 
         Ok(new)
     }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
         // Get the Master control
-        let mixer = self.state.mixer.as_ref()
-            .context("mixer is none")?;
+        let mixer = self.state.mixer.as_ref().context("mixer is none")?;
 
         // refresh the mixer
         mixer.handle_events().ok();
@@ -129,9 +126,7 @@ impl Component for Alsa {
             (_, Some(_), None) => Some(self.settings.format.default.as_str()),
 
             // percent is Some, yes levels
-            (_, Some(percent), Some(lvls)) => Some(
-                find_current_level(lvls, percent)?
-            ),
+            (_, Some(percent), Some(lvls)) => Some(find_current_level(lvls, percent)?),
         };
 
         Ok(template)

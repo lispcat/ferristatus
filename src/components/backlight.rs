@@ -86,9 +86,7 @@ impl Component for Backlight {
             // levels is None, use default formatter
             (Some(_), None) => Some(&self.settings.format.default),
             // levels is Some
-            (Some(perc), Some(lvls)) => Some(
-                find_current_level(lvls, perc)?
-            )
+            (Some(perc), Some(lvls)) => Some(find_current_level(lvls, perc)?),
         };
 
         Ok(template)

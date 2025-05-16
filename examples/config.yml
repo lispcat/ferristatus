@@ -5,7 +5,9 @@ settings:
 
 components:
 
-  - text: "all status "
+  - Command:
+      refresh_interval: 1000
+      shell_command: "echo -n 'all status '"
 
   - Alsa:
       refresh_interval: 1000
@@ -45,7 +47,7 @@ components:
           - [50,  "  {p}% {t} "]
           - [30,  "  {p}% {t} "]
           - [10,  "  {p}% {t} "]
-        not_charging: " ? {p}% {t} "
+        not_charging: " ? {p}% "
         default: " ? {p}% {t} "
 
   - text: "|"
