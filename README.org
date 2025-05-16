@@ -18,7 +18,7 @@ This project seeks to replace that script, by being significantly more robust, p
 
 * Usage
 
-- Copy the example config file to the config dir:
+- Copy the [[file:examples/config.yml][example config file]] to the config dir:
 
 #+begin_src shell
 
@@ -91,7 +91,33 @@ A lot of modules have a =format= category to customize how it should be printed 
 
 Below are descriptions of every module and its settings:
 
-*** TODO Alsa
+*** Alsa
+
+The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
+
+: Formatting variables := [ p (percent) ]
+
+- refresh_interval :: Update frequency.
+  - type: uint
+  - default: 1000
+
+- signal :: Unix real-time signal.
+  - type: uint
+  - default: 5
+
+- format :: Formatting settings
+
+  - default :: The default template to use (mostly as a backup).
+    - type: String
+    - default: " Vol: {p}% "
+
+  - mute :: The template to always use if muted.
+    - type: String
+    - default: " MUTE({p}) "
+
+  - levels :: Value-ranges for each template.
+    - type: Option<alist>
+    - default: None
 
 *** TODO Backlight
 

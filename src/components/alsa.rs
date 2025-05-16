@@ -46,7 +46,7 @@ pub struct AlsaSettings {
 #[derive(Debug, SmartDefault, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct AlsaFormatSettings {
-    #[default(" V: {p}% ")]
+    #[default(" Vol: {p}% ")]
     pub default: String,
 
     #[default(" MUTE({p}) ")]
@@ -73,12 +73,12 @@ impl Component for Alsa {
     }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
-        // Get the Master control
         let mixer = self.state.mixer.as_ref().context("mixer is none")?;
 
         // refresh the mixer
         mixer.handle_events().ok();
 
+        // Get the Master control
         let selem_id: SelemId = SelemId::new("Master", 0);
         let selem: Selem<'_> = mixer
             .find_selem(&selem_id)
