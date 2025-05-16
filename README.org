@@ -21,10 +21,8 @@ This project seeks to replace that script, by being significantly more robust, p
 - Copy the example config file to the config dir:
 
   #+begin_src shell
-
 $ mkdir -p ~/.config/ferristatus
 $ cp ferristatus/examples/config.yml ~/.config/ferristatus/
-
   #+end_src
 
 - Modify the config file as needed
