@@ -9,6 +9,7 @@ use config::Config;
 mod args;
 mod components;
 mod config;
+mod signals;
 mod utils;
 
 fn update_all_components(components: &mut Vec<Box<dyn Component>>) -> anyhow::Result<()> {
@@ -19,13 +20,11 @@ fn update_all_components(components: &mut Vec<Box<dyn Component>>) -> anyhow::Re
 }
 
 fn collect_cache_for_components(
-    components: &Vec<Box<dyn Component>>
+    components: &Vec<Box<dyn Component>>,
 ) -> anyhow::Result<Vec<Option<&str>>> {
     components
         .iter()
-        .map(|c| -> anyhow::Result<Option<&str>> {
-            c.get_cache()
-        })
+        .map(|c| -> anyhow::Result<Option<&str>> { c.get_cache() })
         .collect::<Result<Vec<_>, _>>()
 }
 
@@ -34,7 +33,7 @@ fn print_collected_cache(cache_collected: &Vec<Option<&str>>) -> anyhow::Result<
         match c {
             Some(v) => {
                 print!("{}", v);
-            },
+            }
             None => print!("N/A: (no_cache)"),
         }
     }
@@ -47,29 +46,27 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     // parse config
-    let config = Config::new(&args)
-        .context("failed to create config")?;
+    let config = Config::new(&args).context("failed to create config")?;
 
     // get config
     let mut components = config.components.vec;
 
+    // start signal handler
+    signals::signals_watch()?;
+
     // run until killed
     loop {
-
-        update_all_components(&mut components)
-            .context("failed to update component")?;
+        update_all_components(&mut components).context("failed to update component")?;
 
         let output = collect_cache_for_components(&components)
             .context("failed to collect component cache")?;
 
-        print_collected_cache(&output)
-            .context("failed to print collected component cache")?;
+        print_collected_cache(&output).context("failed to print collected component cache")?;
 
         // Pause
         thread::sleep(Duration::from_millis(config.settings.check_interval));
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -83,23 +80,22 @@ mod tests {
         };
 
         // parse config
-        let config = Config::new(&args)
-            .context("failed to create config")?;
+        let config = Config::new(&args).context("failed to create config")?;
 
         // get components
         let mut components = config.components.vec;
 
+        // start signal handler
+        signals::signals_watch()?;
+
         // run for 10 iterations
         for _ in 0..10 {
-
-            update_all_components(&mut components)
-                .context("failed to update component")?;
+            update_all_components(&mut components).context("failed to update component")?;
 
             let output = collect_cache_for_components(&components)
                 .context("failed to collect component cache")?;
 
-            print_collected_cache(&output)
-                .context("failed to print collected component cache")?;
+            print_collected_cache(&output).context("failed to print collected component cache")?;
 
             // Pause
             thread::sleep(Duration::from_millis(config.settings.check_interval));

@@ -2,19 +2,17 @@ use anyhow::Context;
 use itertools::Itertools;
 
 pub fn sort_levels(levels: &mut Option<Vec<(i32, String)>>) {
-    levels
-        .as_ref()
-        .map(|lvls| {
-            lvls.clone()
-                .into_iter()
-                .sorted_by(|a, b| a.0.cmp(&b.0))
-                .collect::<Vec<(i32, String)>>()
-        });
+    levels.as_ref().map(|lvls| {
+        lvls.clone()
+            .into_iter()
+            .sorted_by(|a, b| a.0.cmp(&b.0))
+            .collect::<Vec<(i32, String)>>()
+    });
 }
 
 pub fn find_current_level<'a, T: PartialOrd<i32>>(
     levels: &'a [(i32, String)],
-    current: &T
+    current: &T,
 ) -> anyhow::Result<&'a str> {
     levels
         .iter()
