@@ -85,7 +85,7 @@ Most modules have the following settings:
   - given this example, running =$ kill -SIGRTMIN+6 <ferristatus pid>= will forcefully refresh the Alsa module and reprint.
 
 A lot of modules have a =format= category to customize how it should be printed to stdout. In the case of the Alsa component, there are three fields: =default=, =muted=, and =levels=.
-- Since =default= is set to ~" ? {p}% "~, the ~"{p}"~ substring will be replaced with the current Alsa volume percentage.
+- Since =default= is set to ~" ? {p}% "~, the ~{p}~ substring will be replaced with the current Alsa volume percentage.
 - Same principle for =muted=.
 - As for =levels=, this takes an alist of a numerical threshold and a string. When the current value (in this case the Alsa volume percentage) is for example, 70, it will print the string corresponding to 100. So in other words, the format string to be used will correspond to the first threshold value greater than the current value.
 
