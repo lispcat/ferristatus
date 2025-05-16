@@ -99,7 +99,8 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
 
 Formatting variables := [ p (percent) ]
 
-Example:
+**** example:
+
 #+begin_src yaml
   - Alsa:
       refresh_interval: 500
@@ -114,7 +115,7 @@ Example:
           - [10,  "  {p}% "]
 #+end_src
 
-Settings:
+**** settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -144,7 +145,8 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
 
 Formatting variables := [ p (percent) ]
 
-Example:
+**** example:
+
 #+begin_src yaml
   - Backlight:
       refresh_interval: 500
@@ -155,7 +157,7 @@ Example:
         default: "  {p} "
 #+end_src
 
-Settings:
+**** settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -185,7 +187,8 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
 
 Formatting variables := [ p (percent), t (time_remaining) ]
 
-Example:
+**** example:
+
 #+begin_src yaml
   - Battery:
       refresh_interval: 2000
@@ -204,7 +207,7 @@ Example:
           - [10,  "  {p}% {t} "]
 #+end_src
 
-Settings:
+**** settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -244,7 +247,8 @@ Settings:
 
 The Command module runs a shell command with "sh -c" and prints its stdout.
 
-Example:
+**** example:
+
 #+begin_src yaml
   - Command:
       refresh_interval: 1000
@@ -252,7 +256,7 @@ Example:
       shell_command: "~/.bin/my-script.sh"
 #+end_src
 
-Settings:
+**** settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -279,7 +283,8 @@ Example:
 
 The Time module prints the current time using a specified date format string.
 
-Example:
+**** example:
+
 #+begin_src yaml
   - Time:
       refresh_interval: 1000
@@ -290,7 +295,7 @@ Example:
         default: " {t} "
 #+end_src
 
-Settings:
+**** settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
