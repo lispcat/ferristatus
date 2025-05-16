@@ -89,17 +89,15 @@ A lot of modules have a =format= category to customize how it should be printed 
 - Same principle for =muted=.
 - As for =levels=, this takes an alist of a numerical threshold and a string. When the current value (in this case the Alsa volume percentage) is for example, 70, it will print the string corresponding to 100. So in other words, the format string to be used will correspond to the first threshold value greater than the current value.
 
-** Each module in detail
-
 Below are descriptions of every module and its settings:
 
-*** Alsa
+** Alsa
 
 The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
 
 - Formatting variables := [ p (percent) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Alsa:
@@ -115,7 +113,7 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
           - [10,  "  {p}% "]
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -139,13 +137,13 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
     - type: Option<alist>
     - default: None
 
-*** Backlight
+** Backlight
 
 The Backlight module reads the =brightness= and =max_brightness= files from the backlight sysfs entry (on my system it's at =/sys/class/backlight/acpi_video0=), and calculates a percent.
 
 - Formatting variables := [ p (percent) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Backlight:
@@ -157,7 +155,7 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
         default: "  {p} "
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -181,13 +179,13 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
     - type: Option<alist>
     - default: None
 
-*** Battery
+** Battery
 
 The Battery module uses the acpi_client crate to fetch acpi information needed to identify battery percent, state, and time remaining (till empty/full).
 
 - Formatting variables := [ p (percent), t (time_remaining) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Battery:
@@ -207,7 +205,7 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
           - [10,  "  {p}% {t} "]
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -243,11 +241,11 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
     - type: Option<alist>
     - default: None
 
-*** Command
+** Command
 
 The Command module runs a shell command with "sh -c" and prints its stdout.
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Command:
@@ -256,7 +254,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
       shell_command: "~/.bin/my-script.sh"
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -270,7 +268,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
   - type: String
   - default: ="echo -n ' hello world! '"=
 
-*** Text
+** Text
 
 The Text module simply prints a specified string. Perfect for separators.
 
@@ -279,13 +277,13 @@ Example:
   - text: "|"
 #+end_src
 
-*** Time
+** Time
 
 The Time module prints the current time using a specified date format string.
 
 - Formatting variables := [ t (time) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Time:
@@ -297,7 +295,7 @@ The Time module prints the current time using a specified date format string.
         default: " {t} "
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
