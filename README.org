@@ -97,7 +97,7 @@ Below are descriptions of every module and its settings:
 
 The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
 
-~Formatting variables := [ p (percent) ]~
+- Formatting variables := [ p (percent) ]
 
 **** Example:
 
@@ -143,7 +143,7 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
 
 The Backlight module reads the =brightness= and =max_brightness= files from the backlight sysfs entry (on my system it's at =/sys/class/backlight/acpi_video0=), and calculates a percent.
 
-~Formatting variables := [ p (percent) ]~
+- Formatting variables := [ p (percent) ]
 
 **** Example:
 
@@ -185,7 +185,7 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
 
 The Battery module uses the acpi_client crate to fetch acpi information needed to identify battery percent, state, and time remaining (till empty/full).
 
-~Formatting variables := [ p (percent), t (time_remaining) ]~
+- Formatting variables := [ p (percent), t (time_remaining) ]
 
 **** Example:
 
@@ -283,7 +283,7 @@ Example:
 
 The Time module prints the current time using a specified date format string.
 
-~Formatting variables := [ t (time) ]~
+- Formatting variables := [ t (time) ]
 
 **** Example:
 
