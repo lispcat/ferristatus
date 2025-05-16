@@ -97,7 +97,7 @@ Below are descriptions of every module and its settings:
 
 The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
 
-Formatting variables := [ p (percent) ]
+~Formatting variables := [ p (percent) ]~
 
 **** Example:
 
@@ -129,11 +129,11 @@ Formatting variables := [ p (percent) ]
 
   - default :: The default template to use (mostly as a backup).
     - type: String
-    - default: " Vol: {p}% "
+    - default: =" Vol: {p}% "=
 
   - mute :: The template to always use if muted.
     - type: String
-    - default: " MUTE({p}) "
+    - default: =" MUTE({p}) "=
 
   - levels :: Value-ranges for each template.
     - type: Option<alist>
@@ -143,7 +143,7 @@ Formatting variables := [ p (percent) ]
 
 The Backlight module reads the =brightness= and =max_brightness= files from the backlight sysfs entry (on my system it's at =/sys/class/backlight/acpi_video0=), and calculates a percent.
 
-Formatting variables := [ p (percent) ]
+~Formatting variables := [ p (percent) ]~
 
 **** Example:
 
@@ -175,7 +175,7 @@ Formatting variables := [ p (percent) ]
 
   - default :: The default template to use (mostly as a backup).
     - type: String
-    - default: " br: {p} "
+    - default: =" br: {p} "=
 
   - levels :: Value-ranges for each template.
     - type: Option<alist>
@@ -185,7 +185,7 @@ Formatting variables := [ p (percent) ]
 
 The Battery module uses the acpi_client crate to fetch acpi information needed to identify battery percent, state, and time remaining (till empty/full).
 
-Formatting variables := [ p (percent), t (time_remaining) ]
+~Formatting variables := [ p (percent), t (time_remaining) ]~
 
 **** Example:
 
@@ -225,19 +225,19 @@ Formatting variables := [ p (percent), t (time_remaining) ]
 
   - default :: The default template to use (mostly as a backup).
     - type: String
-    - default: " Bat: {p}% {t} "
+    - default: =" Bat: {p}% {t} "=
 
   - full :: The template to always use if fully charged.
     - type: String
-    - default: " Full({p}) "
+    - default: =" Full({p}) "=
 
   - charging :: The template to always use if actively charging.
     - type: String
-    - default: " + {p}% {t} "
+    - default: =" + {p}% {t} "=
 
   - not_charging :: The template to always use if plugged in but not actively charging (e.g. if using a power management tool like TLP and it stops further charging when at a certain percent).
     - type: String
-    - default: " ? {p}% "
+    - default: =" ? {p}% "=
 
   - discharging :: If discharging, value-ranges for each template to use.
     - type: Option<alist>
@@ -268,7 +268,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
 
 - shell_command :: Shell command to execute.
   - type: String
-  - default: "echo -n ' hello world! '"
+  - default: ="echo -n ' hello world! '"=
 
 *** Text
 
@@ -282,6 +282,8 @@ Example:
 *** Time
 
 The Time module prints the current time using a specified date format string.
+
+~Formatting variables := [ t (time) ]~
 
 **** Example:
 
@@ -307,10 +309,10 @@ The Time module prints the current time using a specified date format string.
 
 - time :: Date format string to use.
   - type: String
-  - default: "%Y-%m-%d %H:%M:%S"
+  - default: ="%a %d %b %I:%M %P"=
 
 - format :: Formatting settings:
 
   - default :: The template to use.
     - type: String
-    - default: " {t} "
+    - default: =" {t} "=
