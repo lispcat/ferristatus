@@ -99,7 +99,7 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
 
 Formatting variables := [ p (percent) ]
 
-**** example:
+**** Example:
 
 #+begin_src yaml
   - Alsa:
@@ -115,7 +115,7 @@ Formatting variables := [ p (percent) ]
           - [10,  "  {p}% "]
 #+end_src
 
-**** settings:
+**** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -145,7 +145,7 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
 
 Formatting variables := [ p (percent) ]
 
-**** example:
+**** Example:
 
 #+begin_src yaml
   - Backlight:
@@ -157,7 +157,7 @@ Formatting variables := [ p (percent) ]
         default: "  {p} "
 #+end_src
 
-**** settings:
+**** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -187,7 +187,7 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
 
 Formatting variables := [ p (percent), t (time_remaining) ]
 
-**** example:
+**** Example:
 
 #+begin_src yaml
   - Battery:
@@ -207,7 +207,7 @@ Formatting variables := [ p (percent), t (time_remaining) ]
           - [10,  "  {p}% {t} "]
 #+end_src
 
-**** settings:
+**** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -247,7 +247,7 @@ Formatting variables := [ p (percent), t (time_remaining) ]
 
 The Command module runs a shell command with "sh -c" and prints its stdout.
 
-**** example:
+**** Example:
 
 #+begin_src yaml
   - Command:
@@ -256,7 +256,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
       shell_command: "~/.bin/my-script.sh"
 #+end_src
 
-**** settings:
+**** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -283,7 +283,7 @@ Example:
 
 The Time module prints the current time using a specified date format string.
 
-**** example:
+**** Example:
 
 #+begin_src yaml
   - Time:
@@ -295,7 +295,7 @@ The Time module prints the current time using a specified date format string.
         default: " {t} "
 #+end_src
 
-**** settings:
+**** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
