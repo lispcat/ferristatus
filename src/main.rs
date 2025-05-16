@@ -52,7 +52,7 @@ fn main() -> anyhow::Result<()> {
     let mut components = config.components.vec;
 
     // start signal handler
-    signals::signals_watch()?;
+    let signal_receiver = signals::signals_watch()?;
 
     // run until killed
     loop {
@@ -63,8 +63,13 @@ fn main() -> anyhow::Result<()> {
 
         print_collected_cache(&output).context("failed to print collected component cache")?;
 
-        // Pause
-        thread::sleep(Duration::from_millis(config.settings.check_interval));
+        // sleep or signal interrupt
+        if let Some(signal) = signals::wait_for_signal_or_timeout(
+            &signal_receiver,
+            Duration::from_millis(config.settings.check_interval),
+        )? {
+            println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
+        }
     }
 }
 
@@ -86,7 +91,7 @@ mod tests {
         let mut components = config.components.vec;
 
         // start signal handler
-        signals::signals_watch()?;
+        let signal_receiver = signals::signals_watch()?;
 
         // run for 10 iterations
         for _ in 0..10 {
@@ -97,8 +102,13 @@ mod tests {
 
             print_collected_cache(&output).context("failed to print collected component cache")?;
 
-            // Pause
-            thread::sleep(Duration::from_millis(config.settings.check_interval));
+            // sleep or signal interrupt
+            if let Some(signal) = signals::wait_for_signal_or_timeout(
+                &signal_receiver,
+                Duration::from_millis(config.settings.check_interval),
+            )? {
+                println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
+            }
         }
 
         Ok(())
