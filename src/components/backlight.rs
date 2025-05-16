@@ -42,7 +42,7 @@ pub struct BacklightSettings {
 #[derive(Debug, SmartDefault, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BacklightFormatSettings {
-    #[default("  {p} ")]
+    #[default(" br: {p} ")]
     pub default: String,
 
     #[default(None)]

@@ -47,17 +47,17 @@ pub struct BatterySettings {
 #[derive(Debug, SmartDefault, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct BatteryFormatSettings {
-    #[default(" B: {p}% {t} ")]
+    #[default(" Bat: {p}% {t} ")]
     pub default: String,
 
     #[default(" Full({p}) ")]
     pub full: String,
 
+    #[default(" + {p}% {t} ")]
+    pub charging: String,
+
     #[default(" ? {p}% ")]
     pub not_charging: String,
-
-    #[default("  {p}% {t} ")]
-    pub charging: String,
 
     #[default(None)]
     pub discharging: Option<Vec<(i32, String)>>,

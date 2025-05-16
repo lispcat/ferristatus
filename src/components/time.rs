@@ -26,13 +26,13 @@ pub struct TimeState {
 #[derive(Debug, SmartDefault, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TimeSettings {
-    #[default(500)]
+    #[default(1000)]
     pub refresh_interval: u64,
 
-    #[default(8)]
+    #[default(9)]
     pub signal: u32,
 
-    #[default("%Y-%m-%d %H:%M:%S".to_string())]
+    #[default("%a %d %b %I:%M %P".to_string())]
     pub time: String,
 
     #[default(TimeFormatSettings::default())]

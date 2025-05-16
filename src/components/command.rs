@@ -1,7 +1,3 @@
-// run a terminal command
-
-// Custom command /////////////////////////////////////////////////////////////
-
 use std::time;
 
 use serde::Deserialize;
@@ -10,6 +6,8 @@ use smart_default::SmartDefault;
 use crate::{impl_component_methods, new_from_value};
 
 use super::Component;
+
+// Custom command /////////////////////////////////////////////////////////////
 
 #[derive(Debug, SmartDefault)]
 pub struct Command {
@@ -29,9 +27,10 @@ pub struct CommandSettings {
     #[default(1000)]
     pub refresh_interval: u64,
 
-    #[default(10)]
+    #[default(8)]
     pub signal: u32,
 
+    #[default("echo -n ' hello world! '")]
     pub shell_command: String,
 }
 

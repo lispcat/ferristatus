@@ -64,15 +64,15 @@ components:
 
   - Alsa:
       refresh_interval: 1000
-      signal: 6
+      signal: 5
 
       format:
         default: " ? {p}% "
         muted: " MUTE({p}) "
         levels:
-          - [100, "  {p}% "]
-          - [40,  "  {p}% "]
-          - [10,  "  {p}% "]
+          - [100, " Vol: high: {p}% "]
+          - [40,  " Vol: med: {p}% "]
+          - [10,  " Vol: low: {p}% "]
 
   ...
 
@@ -89,23 +89,42 @@ A lot of modules have a =format= category to customize how it should be printed 
 - Same principle for =muted=.
 - As for =levels=, this takes an alist of a numerical threshold and a string. When the current value (in this case the Alsa volume percentage) is for example, 70, it will print the string corresponding to 100. So in other words, the format string to be used will correspond to the first threshold value greater than the current value.
 
+** Each module in detail
+
 Below are descriptions of every module and its settings:
 
 *** Alsa
 
 The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
 
-: Formatting variables := [ p (percent) ]
+Formatting variables := [ p (percent) ]
+
+Example:
+#+begin_src yaml
+  - Alsa:
+      refresh_interval: 500
+      signal: 5
+
+      format:
+        default: " ? {p}% "
+        muted: " MUTE({p}) "
+        levels:
+          - [100, "  {p}% "]
+          - [40,  "  {p}% "]
+          - [10,  "  {p}% "]
+#+end_src
+
+Settings:
 
 - refresh_interval :: Update frequency.
-  - type: uint
+  - type: u_int
   - default: 1000
 
 - signal :: Unix real-time signal.
-  - type: uint
+  - type: u_int
   - default: 5
 
-- format :: Formatting settings
+- format :: Formatting settings:
 
   - default :: The default template to use (mostly as a backup).
     - type: String
@@ -119,12 +138,174 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
     - type: Option<alist>
     - default: None
 
-*** TODO Backlight
+*** Backlight
 
-*** TODO Battery
+The Backlight module reads the =brightness= and =max_brightness= files from the backlight sysfs entry (on my system it's at =/sys/class/backlight/acpi_video0=), and calculates a percent.
 
-*** TODO Command
+Formatting variables := [ p (percent) ]
 
-*** TODO Text
+Example:
+#+begin_src yaml
+  - Backlight:
+      refresh_interval: 500
+      signal: 6
 
-*** TODO Time
+      path: "/sys/class/backlight/acpi_video0"
+      format:
+        default: "  {p} "
+#+end_src
+
+Settings:
+
+- refresh_interval :: Update frequency.
+  - type: u_int
+  - default: 1000
+
+- signal :: Unix real-time signal.
+  - type: u_int
+  - default: 6
+
+- path :: Path to the backlight sysfs entry.
+  - type: Path
+  - default: =/sys/class/backlight/acpi_video0=
+
+- format :: Formatting settings:
+
+  - default :: The default template to use (mostly as a backup).
+    - type: String
+    - default: " br: {p} "
+
+  - levels :: Value-ranges for each template.
+    - type: Option<alist>
+    - default: None
+
+*** Battery
+
+The Battery module uses the acpi_client crate to fetch acpi information needed to identify battery percent, state, and time remaining (till empty/full).
+
+Formatting variables := [ p (percent), t (time_remaining) ]
+
+Example:
+#+begin_src yaml
+  - Battery:
+      refresh_interval: 2000
+      signal: 7
+
+      format:
+        default: " ?? {p}% {t} "
+        full: " Full({p}) "
+        charging: "  {p}% {t} "
+        not_charging: " ? {p}% "
+        discharging:
+          - [100, "  {p}% {t} "]
+          - [70,  "  {p}% {t} "]
+          - [50,  "  {p}% {t} "]
+          - [30,  "  {p}% {t} "]
+          - [10,  "  {p}% {t} "]
+#+end_src
+
+Settings:
+
+- refresh_interval :: Update frequency.
+  - type: u_int
+  - default: 1000
+
+- signal :: Unix real-time signal.
+  - type: u_int
+  - default: 7
+
+- path :: Path to the battery sysfs entry.
+  - type: Path
+  - default: =/sys/class/power_supply/BAT0=
+
+- format :: Formatting settings:
+
+  - default :: The default template to use (mostly as a backup).
+    - type: String
+    - default: " Bat: {p}% {t} "
+
+  - full :: The template to always use if fully charged.
+    - type: String
+    - default: " Full({p}) "
+
+  - charging :: The template to always use if actively charging.
+    - type: String
+    - default: " + {p}% {t} "
+
+  - not_charging :: The template to always use if plugged in but not actively charging (e.g. if using a power management tool like TLP and it stops further charging when at a certain percent).
+    - type: String
+    - default: " ? {p}% "
+
+  - discharging :: If discharging, value-ranges for each template to use.
+    - type: Option<alist>
+    - default: None
+
+*** Command
+
+The Command module runs a shell command with "sh -c" and prints its stdout.
+
+Example:
+#+begin_src yaml
+  - Command:
+      refresh_interval: 1000
+      signal: 8
+      shell_command: "~/.bin/my-script.sh"
+#+end_src
+
+Settings:
+
+- refresh_interval :: Update frequency.
+  - type: u_int
+  - default: 1000
+
+- signal :: Unix real-time signal.
+  - type: u_int
+  - default: 8
+
+- shell_command :: Shell command to execute.
+  - type: String
+  - default: "echo -n ' hello world! '"
+
+*** Text
+
+The Text module simply prints a specified string. Perfect for separators.
+
+Example:
+#+begin_src yaml
+  - text: "|"
+#+end_src
+
+*** Time
+
+The Time module prints the current time using a specified date format string.
+
+Example:
+#+begin_src yaml
+  - Time:
+      refresh_interval: 1000
+      signal: 9
+
+      time: "%a %d %b %I:%M %P"
+      format:
+        default: " {t} "
+#+end_src
+
+Settings:
+
+- refresh_interval :: Update frequency.
+  - type: u_int
+  - default: 1000
+
+- signal :: Unix real-time signal.
+  - type: u_int
+  - default: 9
+
+- time :: Date format string to use.
+  - type: String
+  - default: "%Y-%m-%d %H:%M:%S"
+
+- format :: Formatting settings:
+
+  - default :: The template to use.
+    - type: String
+    - default: " {t} "
