@@ -81,7 +81,7 @@ components:
 Most modules have the following settings:
 
 - refresh_interval :: the frequency (ms) at which to update this module.
-- signal :: (WIP) forcefully updates the module and reprints, when it receives the corresponding UNIX real-time signal.
+- signal :: (TODO) forcefully updates the module and reprints, when it receives the corresponding UNIX real-time signal.
   - given this example, running =$ kill -SIGRTMIN+6 <ferristatus pid>= will forcefully refresh the Alsa module and reprint.
 
 A lot of modules have a =format= category to customize how it should be printed to stdout. In the case of the Alsa component, there are three fields: =default=, =muted=, and =levels=.
