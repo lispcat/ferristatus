@@ -75,6 +75,8 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
+
     use super::*;
 
     #[test]
@@ -93,23 +95,51 @@ mod tests {
         // start signal handler
         let signal_receiver = signals::signals_watch()?;
 
-        // run for 10 iterations
-        for _ in 0..10 {
-            update_all_components(&mut components).context("failed to update component")?;
+        let mut cache_vec: Arc<Mutex<Vec<Option<&str>>>> = vec![];
 
-            let output = collect_cache_for_components(&components)
-                .context("failed to collect component cache")?;
+        // for _ in 0..10 {
+        //     match last_signal {
+        //         Some(signal) => {
+        //             todo!();
+        //             // only update one component
+        //             // collect_cache_for_components
+        //         }
+        //         None => {
+        //             update_all_components(&mut components)
+        //                 .context("failed to update components")?;
 
-            print_collected_cache(&output).context("failed to print collected component cache")?;
+        //             cache_vec = collect_cache_for_components(&components)
+        //                 .context("failed to collect components cache")?;
+        //         }
+        //     }
 
-            // sleep or signal interrupt
-            if let Some(signal) = signals::wait_for_signal_or_timeout(
-                &signal_receiver,
-                Duration::from_millis(config.settings.check_interval),
-            )? {
-                println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
-            }
-        }
+        //     print_collected_cache(&cache_vec)
+        //         .context("failed to print collected components cache")?;
+
+        //     // sleep or signal interrupt
+        //     last_signal = signals::wait_for_signal_or_timeout(
+        //         &signal_receiver,
+        //         Duration::from_millis(config.settings.check_interval),
+        //     )?;
+        // }
+
+        // // run for 10 iterations
+        // for _ in 0..10 {
+        //     update_all_components(&mut components).context("failed to update components")?;
+
+        //     let output = collect_cache_for_components(&components)
+        //         .context("failed to collect component cache")?;
+
+        //     print_collected_cache(&output).context("failed to print collected component cache")?;
+
+        //     // sleep or signal interrupt
+        //     if let Some(signal) = signals::wait_for_signal_or_timeout(
+        //         &signal_receiver,
+        //         Duration::from_millis(config.settings.check_interval),
+        //     )? {
+        //         println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
+        //     }
+        // }
 
         Ok(())
     }
