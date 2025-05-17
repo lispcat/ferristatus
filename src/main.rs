@@ -75,12 +75,11 @@ fn main() -> anyhow::Result<()> {
         loop {
             // wait for signal
             if let Ok(signal) = signal_receiver.recv() {
+                // lock the components
                 let mut components_guard: MutexGuard<'_, ComponentVecType> =
                     components_for_signal.lock().expect("failed to lock");
-
                 // update only the corresponding component
                 update_matching_signal(signal, &mut components_guard)?;
-
                 // collect all and print
                 collect_all_cache_and_print(&components_guard)?;
             }
@@ -90,12 +89,10 @@ fn main() -> anyhow::Result<()> {
     // run for 10 iterations
     for _ in 0..10 {
         {
-            // Lock the components and cache_vec
+            // lock the components
             let mut components_guard: MutexGuard<'_, ComponentVecType> = components.lock().unwrap();
-
             // update check all
             update_check_all(&mut components_guard).context("failed to update all components")?;
-
             // collect all and print
             collect_all_cache_and_print(&components_guard)?;
         }
@@ -132,12 +129,11 @@ mod tests {
             loop {
                 // wait for signal
                 if let Ok(signal) = signal_receiver.recv() {
+                    // lock the components
                     let mut components_guard: MutexGuard<'_, ComponentVecType> =
                         components_for_signal.lock().expect("failed to lock");
-
                     // update only the corresponding component
                     update_matching_signal(signal, &mut components_guard)?;
-
                     // collect all and print
                     collect_all_cache_and_print(&components_guard)?;
                 }
@@ -147,14 +143,12 @@ mod tests {
         // run for 10 iterations
         for _ in 0..10 {
             {
-                // Lock the components and cache_vec
+                // lock the components
                 let mut components_guard: MutexGuard<'_, ComponentVecType> =
                     components.lock().unwrap();
-
                 // update check all
                 update_check_all(&mut components_guard)
                     .context("failed to update all components")?;
-
                 // collect all and print
                 collect_all_cache_and_print(&components_guard)?;
             }
