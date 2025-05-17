@@ -32,11 +32,8 @@ pub fn signals_watch() -> anyhow::Result<Receiver<i32>> {
     Ok(rx)
 }
 
-pub fn wait_for_signal_or_timeout(
-    signal_rx: &Receiver<i32>,
-    duration: time::Duration,
-) -> anyhow::Result<Option<i32>> {
-    match signal_rx.recv_timeout(duration) {
+pub fn wait_for_signal(signal_rx: &Receiver<i32>) -> anyhow::Result<Option<i32>> {
+    match signal_rx.recv() {
         Ok(signal) => Ok(Some(signal)),
         Err(_) => Ok(None), // timeout
     }

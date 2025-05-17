@@ -1,4 +1,8 @@
-use std::{thread, time::Duration};
+use std::{
+    sync::{Arc, Mutex, MutexGuard},
+    thread,
+    time::Duration,
+};
 
 use anyhow::Context;
 use args::Args;
@@ -12,28 +16,29 @@ mod config;
 mod signals;
 mod utils;
 
-fn update_all_components(components: &mut Vec<Box<dyn Component>>) -> anyhow::Result<()> {
+fn update_check_all(
+    components: &mut MutexGuard<'_, Vec<Box<dyn Component>>>,
+) -> anyhow::Result<()> {
+    let components: &mut Vec<Box<dyn Component>> = components;
     for c in components.iter_mut() {
         c.update_maybe()?;
     }
     Ok(())
 }
 
-fn collect_cache_for_components(
-    components: &Vec<Box<dyn Component>>,
-) -> anyhow::Result<Vec<Option<&str>>> {
+fn collect_cache_from_components<'a>(
+    components: &'a MutexGuard<'a, Vec<Box<dyn Component>>>,
+) -> anyhow::Result<Vec<Option<&'a str>>> {
     components
         .iter()
         .map(|c| -> anyhow::Result<Option<&str>> { c.get_cache() })
         .collect::<Result<Vec<_>, _>>()
 }
 
-fn print_collected_cache(cache_collected: &Vec<Option<&str>>) -> anyhow::Result<()> {
-    for c in cache_collected {
+fn print_collected_cache(cache_vec: &Vec<Option<&str>>) -> anyhow::Result<()> {
+    for c in cache_vec.iter() {
         match c {
-            Some(v) => {
-                print!("{}", v);
-            }
+            Some(v) => print!("{}", v),
             None => print!("N/A: (no_cache)"),
         }
     }
@@ -55,27 +60,34 @@ fn main() -> anyhow::Result<()> {
     let signal_receiver = signals::signals_watch()?;
 
     // run until killed
-    loop {
-        update_all_components(&mut components).context("failed to update component")?;
+    // loop {
+    //     update_all_components(&mut components).context("failed to update component")?;
 
-        let output = collect_cache_for_components(&components)
-            .context("failed to collect component cache")?;
+    //     let output = collect_cache_for_components(&components)
+    //         .context("failed to collect component cache")?;
 
-        print_collected_cache(&output).context("failed to print collected component cache")?;
+    //     print_collected_cache(&output).context("failed to print collected component cache")?;
 
-        // sleep or signal interrupt
-        if let Some(signal) = signals::wait_for_signal_or_timeout(
-            &signal_receiver,
-            Duration::from_millis(config.settings.check_interval),
-        )? {
-            println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
-        }
-    }
+    //     // sleep or signal interrupt
+    //     if let Some(signal) = signals::wait_for_signal_or_timeout(
+    //         &signal_receiver,
+    //         Duration::from_millis(config.settings.check_interval),
+    //     )? {
+    //         println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
+    //     }
+    // }
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, Mutex};
+    use std::{
+        ops::Deref,
+        sync::{Arc, Mutex},
+    };
+
+    use crate::signals::wait_for_signal;
 
     use super::*;
 
@@ -90,56 +102,46 @@ mod tests {
         let config = Config::new(&args).context("failed to create config")?;
 
         // get components
-        let mut components = config.components.vec;
+        let mut components = Arc::new(Mutex::new(config.components.vec));
 
         // start signal handler
         let signal_receiver = signals::signals_watch()?;
 
-        let mut cache_vec: Arc<Mutex<Vec<Option<&str>>>> = vec![];
+        // create signal watcher thread
+        thread::spawn(move || loop {
+            // // wait for signal
+            // if let Ok(signal) = signal_receiver.recv() {
+            //     println!("DEBUG: update appropriate component!");
 
-        // for _ in 0..10 {
-        //     match last_signal {
-        //         Some(signal) => {
-        //             todo!();
-        //             // only update one component
-        //             // collect_cache_for_components
-        //         }
-        //         None => {
-        //             update_all_components(&mut components)
-        //                 .context("failed to update components")?;
+            //     // update only the corresponding component
+            //     let mut components_guard = components.lock().unwrap();
 
-        //             cache_vec = collect_cache_for_components(&components)
-        //                 .context("failed to collect components cache")?;
-        //         }
-        //     }
+            //     for c in components_guard.iter() {
+            //         println!("DEBUG: wah: {:#?}", c);
+            //     }
 
-        //     print_collected_cache(&cache_vec)
-        //         .context("failed to print collected components cache")?;
+            //     // print collection
+            // }
+        });
 
-        //     // sleep or signal interrupt
-        //     last_signal = signals::wait_for_signal_or_timeout(
-        //         &signal_receiver,
-        //         Duration::from_millis(config.settings.check_interval),
-        //     )?;
-        // }
+        // run for 10 iterations
+        for _ in 0..10 {
+            // Lock the components and cache_vec
+            let mut components_guard = components.lock().unwrap();
 
-        // // run for 10 iterations
-        // for _ in 0..10 {
-        //     update_all_components(&mut components).context("failed to update components")?;
+            // update all
+            update_check_all(&mut components_guard).context("failed to update all components")?;
 
-        //     let output = collect_cache_for_components(&components)
-        //         .context("failed to collect component cache")?;
+            // save all to cache_vec
+            let cache_vec = collect_cache_from_components(&components_guard)
+                .context("failed to collect cache from components")?;
 
-        //     print_collected_cache(&output).context("failed to print collected component cache")?;
+            // print all
+            print_collected_cache(&cache_vec)
+                .context("failed to print collected components cache")?;
 
-        //     // sleep or signal interrupt
-        //     if let Some(signal) = signals::wait_for_signal_or_timeout(
-        //         &signal_receiver,
-        //         Duration::from_millis(config.settings.check_interval),
-        //     )? {
-        //         println!("WWWWWW: SIGNAL RECEIVED: {}", signal);
-        //     }
-        // }
+            thread::sleep(Duration::from_millis(config.settings.check_interval));
+        }
 
         Ok(())
     }
