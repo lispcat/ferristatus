@@ -91,8 +91,12 @@ Most modules have the following settings:
 
 - refresh_interval :: The frequency (ms) at which to update this module.
 - signal :: When the ferristatus process receives a Unix real-time signal, it reacts by immediately updating and refreshing the corresponding module.
-  - Given this example, running =$ pkill -SIGRTMIN+5 -f ferristatus= will forcefully refresh the Alsa module and re-display, since the =signal= setting is set to =5=.
+  - Given this example, running =$ pkill -SIGRTMIN+5 ferristatus= will forcefully refresh the Alsa module and re-display, since the =signal= setting is set to =5=.
   - This works by having a concurrent thread watch for RT (real-time) signals and responding appropriately.
+  - Each ferristatus process creates a PID file at =/tmp/ferris-XXXXXX.pid=, so to send a signal to every instance of ferristatus, you can run the following:
+    : find /tmp -regex '^/tmp/ferris-[0-9]\{6\}\.pid$' -exec cat {} + | xargs -n1 kill -SIGRTMIN+5
+    (if there is 3 ferristatus processes active, all 3 will receive the signal).
+
 
 - format :: A lot of modules have a =format= category to customize how it should be printed to stdout. In the case of the Alsa module, there are three fields: =default=, =muted=, and =levels=.
   - Since =default= is set to =" ? {p}% "=, the ~{p}~ substring will be replaced with the current Alsa volume percentage.
@@ -328,6 +332,7 @@ The Time module prints the current time using a specified date format string.
 * Todo
 
 - [X] implement signals
+- [ ] pidfile
 - [ ] lots of unit tests and debugging edge cases
 - [ ] add license
 
