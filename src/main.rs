@@ -86,7 +86,7 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
-    // run until killed
+    // run until terminated
     loop {
         {
             // lock the components
