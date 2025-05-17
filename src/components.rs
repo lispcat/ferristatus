@@ -99,10 +99,13 @@ impl Display for dyn Component {
 //                                ComponentVec                               //
 ///////////////////////////////////////////////////////////////////////////////
 
+pub type ComponentType = Arc<Mutex<dyn Component + Send + Sync>>;
+pub type ComponentVecType = Vec<ComponentType>;
+
 #[derive(SmartDefault, Debug)]
 pub struct ComponentVec {
     #[default(Vec::new())]
-    pub vec: Vec<Arc<Mutex<dyn Component + Send + Sync>>>,
+    pub vec: ComponentVecType,
 }
 
 macro_rules! create_component_from_name {
@@ -133,21 +136,19 @@ impl<'de> Deserialize<'de> for ComponentVec {
             .collect();
 
         // Parse each component
-        let components_new: Vec<Arc<Mutex<dyn Component + Send + Sync>>> = components_flattened
+        let components_new: ComponentVecType = components_flattened
             .iter()
-            .map(
-                |(name, value)| -> anyhow::Result<Arc<Mutex<dyn Component + Send + Sync>>> {
-                    create_component_from_name!(
-                        name, value,
-                        "alsa" => Alsa,
-                        "backlight" => Backlight,
-                        "battery" => Battery,
-                        "text" => Text,
-                        "time" => Time,
-                        "command" => Command,
-                    )
-                },
-            )
+            .map(|(name, value)| -> anyhow::Result<ComponentType> {
+                create_component_from_name!(
+                    name, value,
+                    "alsa" => Alsa,
+                    "backlight" => Backlight,
+                    "battery" => Battery,
+                    "text" => Text,
+                    "time" => Time,
+                    "command" => Command,
+                )
+            })
             .collect::<Result<_, anyhow::Error>>()
             .map_err(|e| {
                 serde::de::Error::custom(format!("could not parse settings for component: {}", e))

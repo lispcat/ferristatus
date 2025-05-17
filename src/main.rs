@@ -7,7 +7,7 @@ use std::{
 use anyhow::Context;
 use args::Args;
 use clap::Parser;
-use components::Component;
+use components::ComponentVecType;
 use config::Config;
 
 mod args;
@@ -16,10 +16,8 @@ mod config;
 mod signals;
 mod utils;
 
-fn update_check_all(
-    components: &mut MutexGuard<'_, Vec<Arc<Mutex<dyn Component + Send + Sync>>>>,
-) -> anyhow::Result<()> {
-    let components: &mut Vec<Arc<Mutex<dyn Component + Send + Sync>>> = components;
+fn update_check_all(components: &mut MutexGuard<'_, ComponentVecType>) -> anyhow::Result<()> {
+    let components: &mut ComponentVecType = components;
     for c in components.iter_mut() {
         let mut lock = c.lock().expect("failed to lock");
         lock.update_maybe()?;
@@ -29,7 +27,7 @@ fn update_check_all(
 
 fn update_matching_signal(
     signal: u32,
-    components: &mut MutexGuard<'_, Vec<Arc<Mutex<dyn Component + Send + Sync>>>>,
+    components: &mut MutexGuard<'_, ComponentVecType>,
 ) -> anyhow::Result<()> {
     for c in components.iter() {
         let mut c_guard = c.lock().expect("failed to lock");
@@ -43,7 +41,7 @@ fn update_matching_signal(
 }
 
 fn collect_all_cache_and_print(
-    components: &MutexGuard<'_, Vec<Arc<Mutex<dyn Component + Send + Sync>>>>,
+    components: &MutexGuard<'_, ComponentVecType>,
 ) -> anyhow::Result<()> {
     for c in components.iter() {
         let c_guard = c.lock().expect("failed to lock");
@@ -65,9 +63,9 @@ fn main() -> anyhow::Result<()> {
     // parse config
     let config = Config::new(&args).context("failed to create config")?;
 
-    // get config
-    let components = Arc::new(Mutex::new(config.components.vec));
-    let components_for_signal = Arc::clone(&components);
+    // get components
+    let components: Arc<Mutex<ComponentVecType>> = Arc::new(Mutex::new(config.components.vec));
+    let components_for_signal: Arc<Mutex<ComponentVecType>> = Arc::clone(&components);
 
     // start signal handler
     let signal_receiver = signals::signals_watch()?;
@@ -77,10 +75,12 @@ fn main() -> anyhow::Result<()> {
         loop {
             // wait for signal
             if let Ok(signal) = signal_receiver.recv() {
-                // lock componentVec
-                let mut components_guard = components_for_signal.lock().expect("failed to lock");
-                // update only the first matching signal
+                let mut components_guard: MutexGuard<'_, ComponentVecType> =
+                    components_for_signal.lock().expect("failed to lock");
+
+                // update only the corresponding component
                 update_matching_signal(signal, &mut components_guard)?;
+
                 // collect all and print
                 collect_all_cache_and_print(&components_guard)?;
             }
@@ -90,10 +90,12 @@ fn main() -> anyhow::Result<()> {
     // run for 10 iterations
     for _ in 0..10 {
         {
-            // lock componentVec
-            let mut components_guard = components.lock().unwrap();
-            // update all if needed
+            // Lock the components and cache_vec
+            let mut components_guard: MutexGuard<'_, ComponentVecType> = components.lock().unwrap();
+
+            // update check all
             update_check_all(&mut components_guard).context("failed to update all components")?;
+
             // collect all and print
             collect_all_cache_and_print(&components_guard)?;
         }
@@ -119,8 +121,8 @@ mod tests {
         let config = Config::new(&args).context("failed to create config")?;
 
         // get components
-        let components = Arc::new(Mutex::new(config.components.vec));
-        let components_for_signal = Arc::clone(&components);
+        let components: Arc<Mutex<ComponentVecType>> = Arc::new(Mutex::new(config.components.vec));
+        let components_for_signal: Arc<Mutex<ComponentVecType>> = Arc::clone(&components);
 
         // start signal handler
         let signal_receiver = signals::signals_watch()?;
@@ -130,7 +132,7 @@ mod tests {
             loop {
                 // wait for signal
                 if let Ok(signal) = signal_receiver.recv() {
-                    let mut components_guard =
+                    let mut components_guard: MutexGuard<'_, ComponentVecType> =
                         components_for_signal.lock().expect("failed to lock");
 
                     // update only the corresponding component
@@ -146,7 +148,8 @@ mod tests {
         for _ in 0..10 {
             {
                 // Lock the components and cache_vec
-                let mut components_guard = components.lock().unwrap();
+                let mut components_guard: MutexGuard<'_, ComponentVecType> =
+                    components.lock().unwrap();
 
                 // update check all
                 update_check_all(&mut components_guard)
