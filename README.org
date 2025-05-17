@@ -1,6 +1,6 @@
 #+title: Ferristatus
 
-This is a minimal statusbar info printer inspired by slstatus and dwmblocks, written in Rust.
+A minimal statusbar info printer inspired by slstatus and dwmblocks, written in Rust.
 
 It's configured in YAML and supports the following built-in modules:
 - Alsa
@@ -9,6 +9,11 @@ It's configured in YAML and supports the following built-in modules:
 - Command
 - Text
 - Time
+
+It notably has the following features:
+- Unix real-time signals to force immediate update and refresh of specific modules.
+- Under 10mb of RAM with all modules in use.
+- No runtime dependencies (besides coreutils).
 
 * Purpose
 
@@ -80,9 +85,10 @@ components:
 
 Most modules have the following settings:
 
-- refresh_interval :: the frequency (ms) at which to update this module.
-- signal :: (TODO) forcefully updates the module and reprints, when it receives the corresponding UNIX real-time signal.
-  - given this example, running =$ pkill -SIGRTMIN+6 ferristatus= will forcefully refresh the Alsa module and reprint.
+- refresh_interval :: The frequency (ms) at which to update this module.
+- signal :: The Unix real-time signal to react to by immediately updating and refreshing.
+  - Given this example, running =$ pkill -SIGRTMIN+6 -f ferristatus= will forcefully refresh the Alsa module and re-display.
+  - This works by having a concurrent thread watch for RT (real-time) signals and responding appropriately.
 
 A lot of modules have a =format= category to customize how it should be printed to stdout. In the case of the Alsa component, there are three fields: =default=, =muted=, and =levels=.
 - Since =default= is set to ~" ? {p}% "~, the ~{p}~ substring will be replaced with the current Alsa volume percentage.
@@ -315,31 +321,12 @@ The Time module prints the current time using a specified date format string.
     - type: String
     - default: =" {t} "=
 
-* todo
+* Todo
 
-- [ ] implement signals
+- [X] implement signals
 - [ ] lots of unit tests and debugging edge cases
 - [ ] add license
 
-* notes
+* Notes
 
-** main loop
-
-- Updating:
-
-  match signal {
-    Some(s) => {
-      update corresponding component or print unknown signal for this iteration.
-      reuse previous cache but replace one with the newly updated.
-    },
-    None => {
-      update all components.
-      collect all cache for all components.
-    }
-  }
-
-  print collected cache
-
-- Collecting cache:
-
-  
+* License
