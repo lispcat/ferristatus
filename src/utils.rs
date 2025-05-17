@@ -73,6 +73,12 @@ macro_rules! impl_component_methods {
         }
     };
 
+    (get_signal_value) => {
+        fn get_signal_value(&self) -> anyhow::Result<Option<&u32>> {
+            Ok(Some(&self.settings.signal))
+        }
+    };
+
     (get_cache) => {
         fn get_cache(&self) -> anyhow::Result<Option<&str>> {
             Ok(self.state.cache.as_ref().map(|x| x.as_str()))

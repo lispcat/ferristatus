@@ -79,6 +79,7 @@ impl Component for Time {
         set_cache,
         get_last_updated,
         get_refresh_interval,
+        get_signal_value,
         get_cache,
         default_output
     );

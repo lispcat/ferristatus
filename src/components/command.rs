@@ -85,6 +85,7 @@ impl Component for Command {
     impl_component_methods!(
         get_last_updated,
         get_refresh_interval,
+        get_signal_value,
         get_cache,
         default_output
     );

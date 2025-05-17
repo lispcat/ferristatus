@@ -3,10 +3,10 @@ use libc::{SIGRTMAX, SIGRTMIN};
 use signal_hook::iterator::Signals;
 use std::{
     sync::mpsc::{self, Receiver},
-    thread, time,
+    thread,
 };
 
-pub fn signals_watch() -> anyhow::Result<Receiver<i32>> {
+pub fn signals_watch() -> anyhow::Result<Receiver<u32>> {
     let rtmin = SIGRTMIN(); // 34
     let rtmax = SIGRTMAX(); // 64
     eprintln!("LOG: RTMIN: {}, RTMAX: {}", rtmin, rtmax);
@@ -23,7 +23,7 @@ pub fn signals_watch() -> anyhow::Result<Receiver<i32>> {
         thread::spawn(move || {
             for sig in sig.forever() {
                 // Send the signal number through the channel
-                let _ = thread_tx.send(sig - rtmin); // We don't care if the send fails
+                let _ = thread_tx.send((sig - rtmin) as u32); // We don't care if the send fails
             }
         });
     }

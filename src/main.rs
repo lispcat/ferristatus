@@ -17,25 +17,31 @@ mod signals;
 mod utils;
 
 fn update_check_all(
-    components: &mut MutexGuard<'_, Vec<Box<dyn Component>>>,
+    components: &mut MutexGuard<'_, Vec<Arc<Mutex<dyn Component + Send + Sync>>>>,
 ) -> anyhow::Result<()> {
-    let components: &mut Vec<Box<dyn Component>> = components;
+    let components: &mut Vec<Arc<Mutex<dyn Component + Send + Sync>>> = components;
     for c in components.iter_mut() {
-        c.update_maybe()?;
+        let mut lock = c.lock().expect("failed to lock");
+        lock.update_maybe()?;
     }
     Ok(())
 }
 
+// TODO: consider printing in here? (just because i have to clone a vec of strings)
 fn collect_cache_from_components<'a>(
-    components: &'a MutexGuard<'a, Vec<Box<dyn Component>>>,
-) -> anyhow::Result<Vec<Option<&'a str>>> {
+    components: &'a MutexGuard<'a, Vec<Arc<Mutex<dyn Component + Send + Sync>>>>,
+) -> anyhow::Result<Vec<Option<String>>> {
     components
         .iter()
-        .map(|c| -> anyhow::Result<Option<&str>> { c.get_cache() })
+        .map(|c| -> anyhow::Result<Option<String>> {
+            let lock = c.lock().expect("failed to lock");
+            let cache = lock.get_cache()?.context("TOFIX: expected Some")?;
+            Ok(Some(cache.to_string()))
+        })
         .collect::<Result<Vec<_>, _>>()
 }
 
-fn print_collected_cache(cache_vec: &Vec<Option<&str>>) -> anyhow::Result<()> {
+fn print_collected_cache(cache_vec: &Vec<Option<String>>) -> anyhow::Result<()> {
     for c in cache_vec.iter() {
         match c {
             Some(v) => print!("{}", v),
@@ -82,12 +88,6 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        ops::Deref,
-        sync::{Arc, Mutex},
-    };
-
-    use crate::signals::wait_for_signal;
 
     use super::*;
 
@@ -102,44 +102,57 @@ mod tests {
         let config = Config::new(&args).context("failed to create config")?;
 
         // get components
-        let mut components = Arc::new(Mutex::new(config.components.vec));
+        let components = Arc::new(Mutex::new(config.components.vec));
+        let components_for_signal = Arc::clone(&components);
 
         // start signal handler
         let signal_receiver = signals::signals_watch()?;
 
         // create signal watcher thread
-        thread::spawn(move || loop {
-            // // wait for signal
-            // if let Ok(signal) = signal_receiver.recv() {
-            //     println!("DEBUG: update appropriate component!");
+        thread::spawn(move || -> anyhow::Result<()> {
+            loop {
+                // wait for signal
+                if let Ok(signal) = signal_receiver.recv() {
+                    let components_guard = components_for_signal.lock().expect("failed to lock");
 
-            //     // update only the corresponding component
-            //     let mut components_guard = components.lock().unwrap();
+                    // update only the corresponding component
+                    for c in components_guard.iter() {
+                        let mut c_guard = c.lock().expect("failed to lock");
+                        if c_guard.get_signal_value()? == Some(&signal) {
+                            c_guard.update()?;
+                            break;
+                        }
+                    }
 
-            //     for c in components_guard.iter() {
-            //         println!("DEBUG: wah: {:#?}", c);
-            //     }
+                    // collect
+                    let cache_vec = collect_cache_from_components(&components_guard)
+                        .context("failed to collect cache from components")?;
 
-            //     // print collection
-            // }
+                    // print
+                    print_collected_cache(&cache_vec)
+                        .context("failed to print collected components cache")?;
+                }
+            }
         });
 
         // run for 10 iterations
         for _ in 0..10 {
-            // Lock the components and cache_vec
-            let mut components_guard = components.lock().unwrap();
+            {
+                // Lock the components and cache_vec
+                let mut components_guard = components.lock().unwrap();
 
-            // update all
-            update_check_all(&mut components_guard).context("failed to update all components")?;
+                // update all
+                update_check_all(&mut components_guard)
+                    .context("failed to update all components")?;
 
-            // save all to cache_vec
-            let cache_vec = collect_cache_from_components(&components_guard)
-                .context("failed to collect cache from components")?;
+                // save all to cache_vec
+                let cache_vec = collect_cache_from_components(&components_guard)
+                    .context("failed to collect cache from components")?;
 
-            // print all
-            print_collected_cache(&cache_vec)
-                .context("failed to print collected components cache")?;
-
+                // print all
+                print_collected_cache(&cache_vec)
+                    .context("failed to print collected components cache")?;
+            }
             thread::sleep(Duration::from_millis(config.settings.check_interval));
         }
 

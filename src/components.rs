@@ -9,6 +9,7 @@ use core::fmt;
 use std::{
     collections::HashMap,
     fmt::{Debug, Display},
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
@@ -77,6 +78,7 @@ pub trait Component: Debug {
 
     fn get_last_updated(&self) -> anyhow::Result<&Option<std::time::Instant>>;
     fn get_refresh_interval(&self) -> anyhow::Result<&u64>;
+    fn get_signal_value(&self) -> anyhow::Result<Option<&u32>>;
 
     fn get_cache(&self) -> anyhow::Result<Option<&str>>;
 
@@ -100,16 +102,16 @@ impl Display for dyn Component {
 #[derive(SmartDefault, Debug)]
 pub struct ComponentVec {
     #[default(Vec::new())]
-    pub vec: Vec<Box<dyn Component>>,
+    pub vec: Vec<Arc<Mutex<dyn Component + Send + Sync>>>,
 }
 
 macro_rules! create_component_from_name {
     ( $name:expr, $value:expr, $( $component_name:literal => $component_type:ty ),+ $(,)? ) => {
         match $name.to_lowercase().as_str() {
             $(
-                $component_name => Ok(Box::new(
+                $component_name => Ok(Arc::new(Mutex::new(
                     <$component_type>::new_from_value($value)?
-                )),
+                )) as Arc<Mutex<dyn Component + Send + Sync>>),
             )+
             n => Err(anyhow::anyhow!("unknown component name: {}", n))
         }
@@ -131,19 +133,21 @@ impl<'de> Deserialize<'de> for ComponentVec {
             .collect();
 
         // Parse each component
-        let components_new: Vec<Box<dyn Component>> = components_flattened
+        let components_new: Vec<Arc<Mutex<dyn Component + Send + Sync>>> = components_flattened
             .iter()
-            .map(|(name, value)| -> anyhow::Result<Box<dyn Component>> {
-                create_component_from_name!(
-                    name, value,
-                    "alsa" => Alsa,
-                    "backlight" => Backlight,
-                    "battery" => Battery,
-                    "text" => Text,
-                    "time" => Time,
-                    "command" => Command,
-                )
-            })
+            .map(
+                |(name, value)| -> anyhow::Result<Arc<Mutex<dyn Component + Send + Sync>>> {
+                    create_component_from_name!(
+                        name, value,
+                        "alsa" => Alsa,
+                        "backlight" => Backlight,
+                        "battery" => Battery,
+                        "text" => Text,
+                        "time" => Time,
+                        "command" => Command,
+                    )
+                },
+            )
             .collect::<Result<_, anyhow::Error>>()
             .map_err(|e| {
                 serde::de::Error::custom(format!("could not parse settings for component: {}", e))

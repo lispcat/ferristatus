@@ -44,6 +44,10 @@ impl Component for Text {
         anyhow::bail!("not applicable")
     }
 
+    fn get_signal_value(&self) -> anyhow::Result<Option<&u32>> {
+        Ok(None)
+    }
+
     fn get_cache(&self) -> anyhow::Result<Option<&str>> {
         Ok(Some(&self.0))
     }

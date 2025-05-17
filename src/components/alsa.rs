@@ -1,4 +1,4 @@
-use std::time;
+use std::{sync::Mutex, time};
 
 use alsa_lib::{
     mixer::{Selem, SelemChannelId, SelemId},
@@ -27,7 +27,7 @@ pub struct AlsaState {
     pub last_updated: Option<time::Instant>,
     pub cache: Option<String>,
 
-    pub mixer: Option<Mixer>,
+    pub mixer: Mutex<Option<Mixer>>,
 }
 
 #[derive(Debug, SmartDefault, Deserialize)]
@@ -61,19 +61,22 @@ impl Component for Alsa {
     where
         Self: std::marker::Sized,
     {
-        let mut new = Self {
+        let new = Self {
             settings: crate::deserialize_value!(value),
             ..Self::default()
         };
 
-        new.state.mixer =
-            Some(Mixer::new("default", false).context("failed to open the default mixer")?);
+        {
+            let mut lock = new.state.mixer.lock().expect("failed to lock");
+            *lock = Some(Mixer::new("default", false).context("failed to open the default mixer")?);
+        }
 
         Ok(new)
     }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
-        let mixer = self.state.mixer.as_ref().context("mixer is none")?;
+        let lock = self.state.mixer.lock().expect("failed to lock");
+        let mixer = lock.as_ref().context("mixer is none")?;
 
         // refresh the mixer
         mixer.handle_events().ok();
@@ -146,6 +149,7 @@ impl Component for Alsa {
         set_cache,
         get_last_updated,
         get_refresh_interval,
+        get_signal_value,
         get_cache,
         default_output
     );
