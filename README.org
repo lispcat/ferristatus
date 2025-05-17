@@ -320,3 +320,26 @@ The Time module prints the current time using a specified date format string.
 - [ ] implement signals
 - [ ] lots of unit tests and debugging edge cases
 - [ ] add license
+
+* notes
+
+** main loop
+
+- Updating:
+
+  match signal {
+    Some(s) => {
+      update corresponding component or print unknown signal for this iteration.
+      reuse previous cache but replace one with the newly updated.
+    },
+    None => {
+      update all components.
+      collect all cache for all components.
+    }
+  }
+
+  print collected cache
+
+- Collecting cache:
+
+  
