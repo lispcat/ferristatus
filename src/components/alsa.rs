@@ -100,7 +100,7 @@ impl Component for Alsa {
         // Get mute status
         let mute: bool = selem
             .get_playback_switch(SelemChannelId::FrontLeft)
-            .unwrap()
+            .expect("failed to get mute playback switch from FrontLeft")
             == 0;
 
         // update

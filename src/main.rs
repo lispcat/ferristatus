@@ -86,11 +86,12 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
-    // run for 10 iterations
-    for _ in 0..10 {
+    // run until killed
+    loop {
         {
             // lock the components
-            let mut components_guard: MutexGuard<'_, ComponentVecType> = components.lock().unwrap();
+            let mut components_guard: MutexGuard<'_, ComponentVecType> =
+                components.lock().expect("failed to lock");
             // update check all
             update_check_all(&mut components_guard).context("failed to update all components")?;
             // collect all and print
@@ -98,8 +99,6 @@ fn main() -> anyhow::Result<()> {
         }
         thread::sleep(Duration::from_millis(config.settings.check_interval));
     }
-
-    Ok(())
 }
 
 #[cfg(test)]
@@ -145,7 +144,7 @@ mod tests {
             {
                 // lock the components
                 let mut components_guard: MutexGuard<'_, ComponentVecType> =
-                    components.lock().unwrap();
+                    components.lock().expect("failed to lock");
                 // update check all
                 update_check_all(&mut components_guard)
                     .context("failed to update all components")?;
