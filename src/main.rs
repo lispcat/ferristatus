@@ -80,6 +80,8 @@ fn collect_all_cache_and_print(
 
 /// The main body of the program.
 fn run_program(args: Args, testing: bool) -> anyhow::Result<()> {
+    // TODO: set up logging
+
     // parse config
     let config = Config::new(&args).context("failed to create config")?;
 
@@ -98,6 +100,9 @@ fn run_program(args: Args, testing: bool) -> anyhow::Result<()> {
         loop {
             // wait for signal
             if let Ok(signal) = signal_receiver.recv() {
+                // logging
+                eprintln!("LOG: received RT signal: {}", signal);
+
                 // lock the components
                 let mut components_guard: MutexGuard<'_, ComponentVecType> =
                     components_for_signal.lock().expect("failed to lock");

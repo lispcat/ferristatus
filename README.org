@@ -332,7 +332,7 @@ The Time module prints the current time using a specified date format string.
 * Todo
 
 - [X] implement signals
-- [ ] pidfile
+- [ ] logging
 - [ ] lots of unit tests and debugging edge cases
 - [ ] add license
 
