@@ -8,7 +8,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::{apply_strfmt, impl_component_methods, utils::find_current_level};
+use crate::{apply_strfmt, impl_component_methods, utils::find_current_level, MyErrors};
 
 use super::Component;
 
@@ -67,7 +67,11 @@ impl Component for Alsa {
         };
 
         {
-            let mut lock = new.state.mixer.lock().expect("failed to lock");
+            let mut lock = new
+                .state
+                .mixer
+                .lock()
+                .map_err(MyErrors::from_poison_error)?;
             *lock = Some(Mixer::new("default", false).context("failed to open the default mixer")?);
         }
 
@@ -75,7 +79,11 @@ impl Component for Alsa {
     }
 
     fn update_state(&mut self) -> anyhow::Result<()> {
-        let lock = self.state.mixer.lock().expect("failed to lock");
+        let lock = self
+            .state
+            .mixer
+            .lock()
+            .map_err(MyErrors::from_poison_error)?;
         let mixer = lock.as_ref().context("mixer is none")?;
 
         // refresh the mixer

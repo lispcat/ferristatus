@@ -1,7 +1,7 @@
 use std::{
     fs::File,
     io,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex, MutexGuard, PoisonError},
     thread,
     time::Duration,
 };
@@ -21,6 +21,19 @@ mod components;
 mod config;
 mod signals;
 mod utils;
+
+/// Custom error type for this crate
+#[derive(thiserror::Error, Debug)]
+enum MyErrors {
+    #[error("Failed to lock mutex: {0}")]
+    MutexLockError(String),
+}
+
+impl MyErrors {
+    fn from_poison_error<T>(e: PoisonError<T>) -> Self {
+        MyErrors::MutexLockError(e.to_string())
+    }
+}
 
 /// Initialize logging support (to log file)
 /// TODO: currently overwrites the file, so doesn't support multiple instances
@@ -56,24 +69,25 @@ fn create_pid_file() -> anyhow::Result<PidFile> {
 
 /// Update every component as needed.
 fn update_check_all(components: &mut MutexGuard<'_, ComponentVecType>) -> anyhow::Result<()> {
-    let components: &mut ComponentVecType = components;
     for c in components.iter_mut() {
-        let mut lock = c.lock().expect("failed to lock");
-        lock.update_maybe()?;
+        c.lock()
+            .map_err(MyErrors::from_poison_error)?
+            .update_maybe()?;
     }
     Ok(())
 }
 
-/// Update the first component with a corresponding signal value.
+/// Update components with a corresponding signal value.
 fn update_matching_signal(
     signal: u32,
     components: &mut MutexGuard<'_, ComponentVecType>,
 ) -> anyhow::Result<()> {
     for c in components.iter() {
-        let mut c_guard = c.lock().expect("failed to lock");
+        let mut c_guard: MutexGuard<_> = c.lock().map_err(MyErrors::from_poison_error)?;
+
         if c_guard.get_signal_value()? == Some(&signal) {
             c_guard.update()?;
-            break;
+            continue;
         }
     }
 
@@ -85,10 +99,9 @@ fn collect_all_cache_and_print(
     components: &MutexGuard<'_, ComponentVecType>,
 ) -> anyhow::Result<()> {
     for c in components.iter() {
-        let c_guard = c.lock().expect("failed to lock");
-        let cache = c_guard.get_cache()?;
+        let c_guard: MutexGuard<_> = c.lock().map_err(MyErrors::from_poison_error)?;
 
-        match cache {
+        match c_guard.get_cache()? {
             Some(s) => print!("{}", s),
             None => print!("(N/A: no cache)"),
         }
@@ -124,8 +137,9 @@ fn run_program(args: Args, testing: bool) -> anyhow::Result<()> {
                 log::info!("received RT signal: {}", signal);
 
                 // lock the components
-                let mut components_guard: MutexGuard<'_, ComponentVecType> =
-                    components_for_signal.lock().expect("failed to lock");
+                let mut components_guard: MutexGuard<'_, ComponentVecType> = components_for_signal
+                    .lock()
+                    .map_err(MyErrors::from_poison_error)?;
                 // update only the corresponding component
                 update_matching_signal(signal, &mut components_guard)?;
                 // collect all and print
@@ -140,7 +154,7 @@ fn run_program(args: Args, testing: bool) -> anyhow::Result<()> {
         {
             // lock the components
             let mut components_guard: MutexGuard<'_, ComponentVecType> =
-                components.lock().expect("failed to lock");
+                components.lock().map_err(MyErrors::from_poison_error)?;
             // update check all
             update_check_all(&mut components_guard).context("failed to update all components")?;
             // collect all and print
