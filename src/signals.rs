@@ -9,7 +9,7 @@ use std::{
 pub fn signals_watch() -> anyhow::Result<Receiver<u32>> {
     let rtmin = SIGRTMIN(); // 34
     let rtmax = SIGRTMAX(); // 64
-    eprintln!("LOG: RTMIN: {}, RTMAX: {}", rtmin, rtmax);
+    log::info!("RTMIN: {}, RTMAX: {}", rtmin, rtmax);
 
     let (tx, rx) = mpsc::channel();
 

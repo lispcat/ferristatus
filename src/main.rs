@@ -1,4 +1,5 @@
 use std::{
+    fs::File,
     io,
     sync::{Arc, Mutex, MutexGuard},
     thread,
@@ -10,6 +11,8 @@ use args::Args;
 use clap::Parser;
 use components::ComponentVecType;
 use config::Config;
+use env_logger::{Builder, Env, Target};
+use log::LevelFilter;
 use pidfile::PidFile;
 use rand::Rng;
 
@@ -19,7 +22,23 @@ mod config;
 mod signals;
 mod utils;
 
+/// Initialize logging support (to log file)
+/// TODO: currently overwrites the file, so doesn't support multiple instances
+/// (maybe use it in conjunction with the pid file by having same 6 digit ID?
+/// and have it auto-dropped?)
+fn init_logger() -> anyhow::Result<()> {
+    let path = "/tmp/ferristatus.log";
+    let file = File::create(path).expect("failed to create log file"); // TODO: dont overwrite pre-existing
+    let mut builder = Builder::from_env(Env::default());
+    builder
+        .target(Target::Pipe(Box::new(file)))
+        .filter_level(LevelFilter::Info)
+        .init();
+    Ok(())
+}
+
 /// Creates a pid file with format /tmp/ferristatus-XXXXXX.pid
+/// TODO: double-check and make sure that the PID file is being auto-deleted.
 fn create_pid_file() -> anyhow::Result<PidFile> {
     match PidFile::new(format!("/tmp/ferristatus-{}.pid", {
         let mut rng = rand::rng();
@@ -80,7 +99,8 @@ fn collect_all_cache_and_print(
 
 /// The main body of the program.
 fn run_program(args: Args, testing: bool) -> anyhow::Result<()> {
-    // TODO: set up logging
+    // set up logging
+    init_logger()?;
 
     // parse config
     let config = Config::new(&args).context("failed to create config")?;
@@ -101,7 +121,7 @@ fn run_program(args: Args, testing: bool) -> anyhow::Result<()> {
             // wait for signal
             if let Ok(signal) = signal_receiver.recv() {
                 // logging
-                eprintln!("LOG: received RT signal: {}", signal);
+                log::info!("received RT signal: {}", signal);
 
                 // lock the components
                 let mut components_guard: MutexGuard<'_, ComponentVecType> =
