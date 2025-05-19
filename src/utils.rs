@@ -10,15 +10,25 @@ pub fn sort_levels(levels: &mut Option<Vec<(i32, String)>>) {
     });
 }
 
-pub fn find_current_level<'a, T: PartialOrd<i32>>(
+pub fn find_current_level<'a>(
     levels: &'a [(i32, String)],
-    current: &T,
+    current: &i32,
 ) -> anyhow::Result<&'a str> {
     levels
         .iter()
-        .find_or_last(|(ceiling, _)| current < ceiling)
+        .find_or_last(|(ceiling, _)| current > ceiling)
         .map(|(_, format_str)| format_str.as_str())
         .context("failed to find_current_level")
+    // println!("DEBUG: CURR: {}", current);
+    // for pair in levels.iter() {
+    //     let (ceiling, format_str) = pair;
+    //     println!("DEBUG: {}, {}", ceiling, format_str);
+    //     if current > ceiling {
+    //         println!("DEBUG: FOUND: {}", ceiling);
+    //         return Ok(format_str);
+    //     }
+    // }
+    // Err(anyhow::anyhow!("failed to find current level"))
 }
 
 #[macro_export]
