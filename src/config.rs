@@ -39,6 +39,10 @@ impl Config {
     pub fn new(args: &Args) -> anyhow::Result<Self> {
         let path: PathBuf = args.config_path.clone();
         let contents: String = read_file(&path)?;
+        Self::new_from_contents(contents)
+    }
+
+    pub fn new_from_contents(contents: String) -> anyhow::Result<Self> {
         let config: Config = serde_yml::from_str(&contents)?;
         Ok(config)
     }

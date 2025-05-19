@@ -2,33 +2,21 @@ use anyhow::Context;
 use itertools::Itertools;
 
 pub fn sort_levels(levels: &mut Option<Vec<(i32, String)>>) {
-    levels.as_ref().map(|lvls| {
-        lvls.clone()
-            .into_iter()
-            .sorted_by(|a, b| a.0.cmp(&b.0))
-            .collect::<Vec<(i32, String)>>()
-    });
+    if let Some(lvls) = levels {
+        lvls.sort_by(|a, b| a.0.cmp(&b.0));
+    }
 }
 
 pub fn find_current_level<'a>(
     levels: &'a [(i32, String)],
     current: &i32,
 ) -> anyhow::Result<&'a str> {
+    // dbg!(levels);
     levels
         .iter()
-        .find_or_last(|(ceiling, _)| current > ceiling)
+        .find_or_last(|(ceiling, _)| current < ceiling)
         .map(|(_, format_str)| format_str.as_str())
         .context("failed to find_current_level")
-    // println!("DEBUG: CURR: {}", current);
-    // for pair in levels.iter() {
-    //     let (ceiling, format_str) = pair;
-    //     println!("DEBUG: {}, {}", ceiling, format_str);
-    //     if current > ceiling {
-    //         println!("DEBUG: FOUND: {}", ceiling);
-    //         return Ok(format_str);
-    //     }
-    // }
-    // Err(anyhow::anyhow!("failed to find current level"))
 }
 
 #[macro_export]

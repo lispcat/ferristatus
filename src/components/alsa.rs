@@ -8,7 +8,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use smart_default::SmartDefault;
 
-use crate::{apply_strfmt, impl_component_methods, utils::find_current_level, MyErrors};
+use crate::{apply_strfmt, errors::MyErrors, impl_component_methods, utils::find_current_level};
 
 use super::Component;
 
