@@ -74,6 +74,7 @@ fn update_check_all(components: &mut MutexGuard<'_, ComponentVecType>) -> anyhow
             .map_err(MyErrors::from_poison_error)?
             .update_maybe()?;
     }
+
     Ok(())
 }
 
@@ -107,6 +108,7 @@ fn collect_all_cache_and_print(
         }
     }
     println!();
+
     Ok(())
 }
 
