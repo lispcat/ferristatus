@@ -15,6 +15,7 @@ use errors::MyErrors;
 use log::LevelFilter;
 use pidfile::PidFile;
 use rand::Rng;
+use signals::spawn_signal_responder_thread;
 
 pub mod args;
 pub mod components;
@@ -100,6 +101,26 @@ pub fn collect_all_cache(components: &MutexGuard<'_, ComponentVecType>) -> anyho
     Ok(line)
 }
 
+pub fn update_and_print(components: &Arc<Mutex<ComponentVecType>>) -> anyhow::Result<()> {
+    // lock the components
+    let mut components_guard: MutexGuard<'_, ComponentVecType> =
+        components.lock().map_err(MyErrors::from_poison_error)?;
+
+    // update check all
+    update_check_all(&mut components_guard).context("failed to update all components")?;
+
+    // collect all and print
+    println!("{}", collect_all_cache(&components_guard)?);
+
+    Ok(())
+}
+
+macro_rules! sleep_for_duration {
+    ($interval:expr) => {
+        thread::sleep(Duration::from_millis($interval))
+    };
+}
+
 /// The main body of the program.
 pub fn run_program(args: Args, max_iter: Option<u32>) -> anyhow::Result<()> {
     // set up logging
@@ -116,48 +137,21 @@ pub fn run_program(args: Args, max_iter: Option<u32>) -> anyhow::Result<()> {
     let _pidfile = create_pid_file()?;
 
     // create signal watcher thread
-    thread::spawn(move || -> anyhow::Result<()> {
-        // start signal handler
-        let signal_receiver = signals::signals_watch()?;
-        // start signal handling loop
-        loop {
-            // wait for signal
-            if let Ok(signal) = signal_receiver.recv() {
-                // logging
-                log::info!("received RT signal: {}", signal);
-                dbg!(signal);
-
-                // lock the components
-                let mut components_guard: MutexGuard<'_, ComponentVecType> = components_for_signal
-                    .lock()
-                    .map_err(MyErrors::from_poison_error)?;
-                // update only the corresponding component
-                update_matching_signal(signal, &mut components_guard)?;
-                // collect all and print
-                println!("{}", collect_all_cache(&components_guard)?);
-            }
-        }
-    });
+    spawn_signal_responder_thread(components_for_signal)?;
 
     // run until terminated
-    let mut cur_iter: u32 = 1;
-    loop {
-        {
-            // lock the components
-            let mut components_guard: MutexGuard<'_, ComponentVecType> =
-                components.lock().map_err(MyErrors::from_poison_error)?;
-            // update check all
-            update_check_all(&mut components_guard).context("failed to update all components")?;
-            // collect all and print
-            println!("{}", collect_all_cache(&components_guard)?);
-        }
-        thread::sleep(Duration::from_millis(config.settings.check_interval));
-
-        if let Some(max) = max_iter {
-            if cur_iter >= max {
-                return Ok(());
+    match max_iter {
+        None => loop {
+            update_and_print(&components)?;
+            sleep_for_duration!(config.settings.check_interval);
+        },
+        Some(n) => {
+            for _ in 0..=n {
+                update_and_print(&components)?;
+                sleep_for_duration!(config.settings.check_interval);
             }
-            cur_iter += 1;
         }
-    }
+    };
+
+    Ok(())
 }
