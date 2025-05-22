@@ -62,7 +62,11 @@ impl Component for Alsa {
         Self: std::marker::Sized,
     {
         let new = Self {
-            settings: crate::deserialize_value!(value),
+            settings: {
+                let mut settings: AlsaSettings = crate::deserialize_value!(value);
+                crate::utils::sort_levels(&mut settings.format.levels);
+                settings
+            },
             ..Self::default()
         };
 

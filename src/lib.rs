@@ -98,6 +98,8 @@ pub fn collect_all_cache(components: &MutexGuard<'_, ComponentVecType>) -> anyho
         })
         .collect::<anyhow::Result<_>>()?;
 
+    // dbg!(&line);
+
     Ok(line)
 }
 
@@ -146,7 +148,7 @@ pub fn run_program(args: Args, max_iter: Option<u32>) -> anyhow::Result<()> {
             sleep_for_duration!(config.settings.check_interval);
         },
         Some(n) => {
-            for _ in 0..=n {
+            for _ in 0..n {
                 update_and_print(&components)?;
                 sleep_for_duration!(config.settings.check_interval);
             }

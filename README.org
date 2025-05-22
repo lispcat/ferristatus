@@ -334,6 +334,7 @@ The Time module prints the current time using a specified date format string.
 - [X] implement signals
 - [X] logging
 - [ ] lots of unit tests and debugging edge cases
+  - [ ] show certain logs only when running unit tests
 - [ ] add license
 
 * Notes
