@@ -1,5 +1,6 @@
 use std::{fs, path::PathBuf, time};
 
+use anyhow::Context;
 use serde::Deserialize;
 use serde_yml::Value;
 use smart_default::SmartDefault;
@@ -62,10 +63,12 @@ impl Component for Backlight {
 
     fn update_state(&mut self) -> anyhow::Result<()> {
         let path = &self.settings.path;
-        let brightness: f32 = fs::read_to_string(path.join("brightness"))?
+        let brightness: f32 = fs::read_to_string(path.join("brightness"))
+            .context("failed to read file brightness")?
             .trim()
             .parse()?;
-        let max_brightness: f32 = fs::read_to_string(path.join("max_brightness"))?
+        let max_brightness: f32 = fs::read_to_string(path.join("max_brightness"))
+            .context("failed to read file max_brightness")?
             .trim()
             .parse()?;
         let percent = ((brightness * 100.0) / max_brightness).round() as i32;
