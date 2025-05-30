@@ -33,7 +33,7 @@ components:
       refresh_interval: 2000
       format:
         default: " ? {p}% {t} "
-        full: " Full({p}) "
+        full: " Full "
         charging: "  {p}% {t} "
         not_charging: " ? {p}% "
         discharging:
