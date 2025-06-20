@@ -15,6 +15,19 @@ It notably has the following features:
 - Under 10mb of RAM with all modules in use.
 - No runtime dependencies (besides coreutils).
 
+* Table of Contents :TOC:
+- [[#purpose][Purpose]]
+- [[#usage][Usage]]
+- [[#configuration][Configuration]]
+  - [[#settings][settings]]
+  - [[#components][components]]
+  - [[#alsa][Alsa]]
+  - [[#backlight][Backlight]]
+  - [[#battery][Battery]]
+  - [[#command][Command]]
+  - [[#text][Text]]
+  - [[#time][Time]]
+
 * Purpose
 
 I've used various statusbar info printers in the past, like slstatus, dwmblocks, and i3blocks, but none of them fully met my needs, so I've been using a custom bash script for the longest time. This script was slow, prone to bugs, hard to extend, and depended heavily on external programs.
