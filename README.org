@@ -15,18 +15,18 @@ It notably has the following features:
 - Under 10mb of RAM with all modules in use.
 - No runtime dependencies (besides coreutils).
 
-* Table of Contents :TOC_3:
+* Table of Contents :TOC_2:
 - [[#purpose][Purpose]]
 - [[#usage][Usage]]
 - [[#configuration][Configuration]]
   - [[#settings][settings]]
-  - [[#components][components]]
-    - [[#_alsa_][_Alsa_]]
-    - [[#_backlight_][_Backlight_]]
-    - [[#_battery_][_Battery_]]
-    - [[#_command_][_Command_]]
-    - [[#_text_][_Text_]]
-    - [[#_time_][_Time_]]
+  - [[#components---general][components - general]]
+  - [[#alsa][Alsa]]
+  - [[#backlight][Backlight]]
+  - [[#battery][Battery]]
+  - [[#command][Command]]
+  - [[#text][Text]]
+  - [[#time][Time]]
 
 * Purpose
 
@@ -76,7 +76,7 @@ settings:
 - check_interval :: The frequency (ms) at which to check if any modules need updating, and then printing to stdout.
 - default_separator :: The default separator character between each module.
 
-** components
+** components - general
 
 Here we define a list of our modules (aka Components):
 
@@ -118,13 +118,13 @@ Most modules have the following settings:
 
 Below are descriptions of every module and its settings:
 
-*** _Alsa_
+** Alsa
 
 The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
 
 - Formatting variables := [ p (percent) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Alsa:
@@ -140,7 +140,7 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
           - [10,  "  {p}% "]
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -164,13 +164,13 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
     - type: Option<alist>
     - default: =None=
 
-*** _Backlight_
+** Backlight
 
 The Backlight module reads the =brightness= and =max_brightness= files from the backlight sysfs entry (on my system it's at =/sys/class/backlight/acpi_video0=), and calculates a percent.
 
 - Formatting variables := [ p (percent) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Backlight:
@@ -182,7 +182,7 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
         default: "  {p} "
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -206,13 +206,13 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
     - type: Option<alist>
     - default: =None=
 
-*** _Battery_
+** Battery
 
 The Battery module uses the acpi_client crate to fetch acpi information needed to identify battery percent, state, and time remaining (till empty/full).
 
 - Formatting variables := [ p (percent), t (time_remaining) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Battery:
@@ -232,7 +232,7 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
           - [10,  "  {p}% {t} "]
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -268,11 +268,11 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
     - type: Option<alist>
     - default: =None=
 
-*** _Command_
+** Command
 
 The Command module runs a shell command with "sh -c" and prints its stdout.
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Command:
@@ -281,7 +281,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
       shell_command: "~/.bin/my-script.sh"
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
@@ -295,7 +295,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
   - type: String
   - default: ="echo -n ' hello world! '"=
 
-*** _Text_
+** Text
 
 The Text module simply prints a specified string. Perfect for separators.
 
@@ -304,13 +304,13 @@ Example:
   - text: "|"
 #+end_src
 
-*** _Time_
+** Time
 
 The Time module prints the current time using a specified date format string.
 
 - Formatting variables := [ t (time) ]
 
-**** Example:
+*** Example:
 
 #+begin_src yaml
   - Time:
@@ -322,7 +322,7 @@ The Time module prints the current time using a specified date format string.
         default: " {t} "
 #+end_src
 
-**** Settings:
+*** Settings:
 
 - refresh_interval :: Update frequency.
   - type: u_int
