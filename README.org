@@ -21,12 +21,12 @@ It notably has the following features:
 - [[#configuration][Configuration]]
   - [[#settings][settings]]
   - [[#components][components]]
-    - [[#alsa][Alsa]]
-    - [[#backlight][Backlight]]
-    - [[#battery][Battery]]
-    - [[#command][Command]]
-    - [[#text][Text]]
-    - [[#time][Time]]
+    - [[#_alsa_][_Alsa_]]
+    - [[#_backlight_][_Backlight_]]
+    - [[#_battery_][_Battery_]]
+    - [[#_command_][_Command_]]
+    - [[#_text_][_Text_]]
+    - [[#_time_][_Time_]]
 
 * Purpose
 
@@ -118,7 +118,7 @@ Most modules have the following settings:
 
 Below are descriptions of every module and its settings:
 
-*** Alsa
+*** _Alsa_
 
 The Alsa module uses the alsa_lib crate to directly interface with Alsa and retrieve the current volume and mute status. It opens the default mixer, gets the Master control, fetches needed info, and calculates the current volume in percent.
 
@@ -164,7 +164,7 @@ The Alsa module uses the alsa_lib crate to directly interface with Alsa and retr
     - type: Option<alist>
     - default: =None=
 
-*** Backlight
+*** _Backlight_
 
 The Backlight module reads the =brightness= and =max_brightness= files from the backlight sysfs entry (on my system it's at =/sys/class/backlight/acpi_video0=), and calculates a percent.
 
@@ -206,7 +206,7 @@ The Backlight module reads the =brightness= and =max_brightness= files from the 
     - type: Option<alist>
     - default: =None=
 
-*** Battery
+*** _Battery_
 
 The Battery module uses the acpi_client crate to fetch acpi information needed to identify battery percent, state, and time remaining (till empty/full).
 
@@ -268,7 +268,7 @@ The Battery module uses the acpi_client crate to fetch acpi information needed t
     - type: Option<alist>
     - default: =None=
 
-*** Command
+*** _Command_
 
 The Command module runs a shell command with "sh -c" and prints its stdout.
 
@@ -295,7 +295,7 @@ The Command module runs a shell command with "sh -c" and prints its stdout.
   - type: String
   - default: ="echo -n ' hello world! '"=
 
-*** Text
+*** _Text_
 
 The Text module simply prints a specified string. Perfect for separators.
 
@@ -304,7 +304,7 @@ Example:
   - text: "|"
 #+end_src
 
-*** Time
+*** _Time_
 
 The Time module prints the current time using a specified date format string.
 
